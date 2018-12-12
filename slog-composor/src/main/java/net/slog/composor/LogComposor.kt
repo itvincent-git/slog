@@ -2,15 +2,17 @@ package net.slog.composor
 
 import kotlinx.coroutines.*
 import net.slog.SLogBinder
+import net.slog.logcat.LogcatLogger
 import kotlin.coroutines.CoroutineContext
 
 /**
  * Created by zhongyongsheng on 2018/12/12.
  */
-class LogComposor : SLogBinder.SLogBindLogger, CoroutineScope {
+class LogComposor(val tag: String? = "") : SLogBinder.SLogBindLogger, CoroutineScope {
 
     val job: Job = Job()
     val dispatchers = mutableListOf<((String) -> Unit)>()
+    val logcat = LogcatLogger(tag)
 
     override val coroutineContext: CoroutineContext
         get() = job + newSingleThreadContext("LogComposor")
@@ -32,8 +34,10 @@ class LogComposor : SLogBinder.SLogBindLogger, CoroutineScope {
         if (msg != null) {
             val stringObjs = objsToStringObjs(objs)
             async {
+                val formatMsg = msg.format(stringObjs)
+                logcat.verbose(formatMsg)
                 dispatchers.forEach {
-                    it.invoke(msg.format(stringObjs))
+                    it.invoke(formatMsg)
                 }
             }
         }
