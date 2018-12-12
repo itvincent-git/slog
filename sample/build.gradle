@@ -1,0 +1,45 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+
+android {
+    compileSdkVersion _compileSdkVersion
+    defaultConfig {
+        applicationId "net.protoqueue.sample"
+        minSdkVersion _minSdkVersion
+        targetSdkVersion _targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+    }
+
+    /* release sign from properties, just use for test in local */
+    Properties props = new Properties()
+    props.load(new FileInputStream(file("../../../keystore.properties")))
+    signingConfigs {
+        release {
+            storeFile file(props["keystore"])
+            storePassword props["keystore.password"]
+            keyAlias props["keyalias"]
+            keyPassword props["keypassword"]
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "com.android.support:appcompat-v7:$support_version"
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
+    implementation project(':slog-api')
+    implementation project(':slog-file')
+}
