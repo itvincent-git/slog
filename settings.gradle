@@ -1,4 +1,4 @@
 include ':sample',
         ':slog-api',
         ':slog-file',
-        ':slog-logcat'
+        ':slog-composor'
