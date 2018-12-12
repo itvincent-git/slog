@@ -17,9 +17,7 @@ buildscript {
 
         // === release ==
         release_version = "$version"
-        user_org = 'itvincent126'
-        group_id = 'net.protoqueue'
-        url = 'https://github.com/itvincent-git/proto-queue'
+        group_id = 'net.slog'
     }
     repositories {
         maven {

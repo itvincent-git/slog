@@ -64,7 +64,7 @@ publishing {
     publications {
         mavenAar(MavenPublication) {
             groupId "$group_id"
-            artifactId 'protoqueue-runtime'
+            artifactId 'slog-api'
             version "$release_version"
             from components.android
         }
