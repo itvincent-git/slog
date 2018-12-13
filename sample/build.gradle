@@ -42,5 +42,6 @@ dependencies {
     implementation "com.android.support:recyclerview-v7:$support_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
     implementation project(':slog-api')
+    implementation project(':slog-composor')
     implementation project(':slog-file')
 }

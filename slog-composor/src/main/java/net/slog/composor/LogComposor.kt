@@ -32,12 +32,16 @@ class LogComposor(val tag: String? = "") : SLogBinder.SLogBindLogger, CoroutineS
 
     override fun verbose(msg: String?, vararg objs: Any?) {
         if (msg != null) {
-            val stringObjs = objsToStringObjs(objs)
-            async {
-                val formatMsg = msg.format(stringObjs)
-                logcat.verbose(formatMsg)
-                dispatchers.forEach {
-                    it.invoke(formatMsg)
+            var stringiflyArray: Array<Any?>? = null
+            if (objs.isNotEmpty()) {
+                stringiflyArray = toStringiflyArray(objs)
+                async {
+                    val formatMsg = msg.format(*stringiflyArray)
+                    dispatchMsg(formatMsg)
+                }
+            } else {
+                async {
+                    dispatchMsg(msg)
                 }
             }
         }
@@ -79,15 +83,37 @@ class LogComposor(val tag: String? = "") : SLogBinder.SLogBindLogger, CoroutineS
     override fun flush() {
     }
 
-    companion object {
-        fun objsToStringObjs(vararg objs: Any?): List<Any?> {
-            return objs.map { it.toString() }
+    fun dispatchMsg(msg: String) {
+        logcat.verbose(msg)
+        dispatchers.forEach {
+            it.invoke(msg)
         }
     }
 
+    companion object {
+        fun toStringiflyArray(arr: Array<out Any?>): Array<Any?> {
+            val result = Array<Any?>(arr.size) {}
+            arr.forEachIndexed { index, any ->
+                result[index] = (any.notPrimitiveToString())
+            }
+            return result
+        }
+
+
+    }
+
 }
-//
-//interface LogAppender {
-//
-//    fun dispatchMsg(msg: String)
-//}
+
+fun Any?.notPrimitiveToString(): Any? {
+    return when (this) {
+        is Int -> this
+        is Long -> this
+        is Short -> this
+        is Byte -> this
+        is String -> this
+        is Float -> this
+        is Double -> this
+        is Boolean -> this
+        else -> this.toString()
+    }
+}
