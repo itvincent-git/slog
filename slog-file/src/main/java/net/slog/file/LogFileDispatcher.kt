@@ -16,7 +16,7 @@ class LogFileDispatcher(val logDirectory: File) {
 
     private var currentMappedByteBuffer: MappedByteBuffer? = null
 
-    val mappedByteBuffer: MappedByteBuffer
+    protected val mappedByteBuffer: MappedByteBuffer
         get() {
             if (currentMappedByteBuffer == null) {
                 val memoryMappedFile = RandomAccessFile(logFile, "rw")
@@ -28,19 +28,27 @@ class LogFileDispatcher(val logDirectory: File) {
 
     private var currentLogFile: File? = null
 
-    val logFile: File
+    protected val logFile: File
         get() {
             if (currentLogFile == null)
                 currentLogFile = File(logDirectory, "log.txt")
             return currentLogFile!!
         }
 
+    protected val lineFeedCode = "\n".toByteArray()
+
     //var fileUsedSize = 0
 
     val dispatcher :ComposorDispatch = { logLevel, msg ->
-        for (byte in msg.toByteArray())
-            mappedByteBuffer.put(byte)
-        //println("call dispatcher $mappedByteBuffer")
+        if (logLevel > LogLevel.Debug) {
+            for (byte in msg.toByteArray()) {
+                mappedByteBuffer.put(byte)
+            }
+            for (byte in lineFeedCode) {
+                mappedByteBuffer.put(byte)
+            }
+            //println("[${Thread.currentThread().name}]call dispatcher $mappedByteBuffer")
+        }
     }
 
     init {

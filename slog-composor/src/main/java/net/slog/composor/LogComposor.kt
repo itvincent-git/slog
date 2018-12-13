@@ -1,5 +1,8 @@
 package net.slog.composor
 
+import android.os.Handler
+import android.os.HandlerThread
+import android.os.Process
 import android.util.Log
 import kotlinx.coroutines.*
 import net.slog.SLogBinder
@@ -16,14 +19,17 @@ enum class LogLevel { Verbose, Debug, Info, Warn, Error }
 
 typealias ComposorDispatch = (LogLevel, String) -> Unit
 
-class LogComposor(val tag: String? = "", val composorDispatchers: List<ComposorDispatch>) : SLogBinder.SLogBindLogger, CoroutineScope {
+class LogComposor(val tag: String? = "", val composorDispatchers: List<ComposorDispatch>) : SLogBinder.SLogBindLogger {
 
-    val job: Job = Job()
     val logcat = LogcatLogger(tag)
 
-    override val coroutineContext: CoroutineContext
-        get() = job + newSingleThreadContext("LogComposor")
-
+    val handler: Handler by lazy {
+        HandlerThread("LogComposor", Process.THREAD_PRIORITY_BACKGROUND)
+            .let {
+                it.start()
+                Handler(it.looper)
+            }
+    }
 
     override fun isTraceEnable(): Boolean {
         return true
@@ -42,12 +48,12 @@ class LogComposor(val tag: String? = "", val composorDispatchers: List<ComposorD
             var stringiflyArray: Array<Any?>? = null
             if (objs.isNotEmpty()) {
                 stringiflyArray = toStringiflyArray(objs)
-                async {
+                handler.post {
                     val formatMsg = msg.format(*stringiflyArray)
                     dispatchMsg(LogLevel.Verbose, formatMsg)
                 }
             } else {
-                async {
+                handler.post {
                     dispatchMsg(LogLevel.Verbose, msg)
                 }
             }
@@ -64,6 +70,20 @@ class LogComposor(val tag: String? = "", val composorDispatchers: List<ComposorD
     }
 
     override fun info(msg: String?, vararg objs: Any?) {
+        if (msg != null) {
+            var stringiflyArray: Array<Any?>? = null
+            if (objs.isNotEmpty()) {
+                stringiflyArray = toStringiflyArray(objs)
+                handler.post {
+                    val formatMsg = msg.format(*stringiflyArray)
+                    dispatchMsg(LogLevel.Info, formatMsg)
+                }
+            } else {
+                handler.post {
+                    dispatchMsg(LogLevel.Info, msg)
+                }
+            }
+        }
     }
 
     override fun info(tag: String?, msg: String?, vararg objs: Any?) {
@@ -91,7 +111,7 @@ class LogComposor(val tag: String? = "", val composorDispatchers: List<ComposorD
     }
 
     private fun dispatchMsg(logLevel: LogLevel, msg: String) {
-        logcat.verbose(msg)
+        logcat.verbose("[${Thread.currentThread().name}]$msg")
         composorDispatchers.forEach {
             try {
                 it.invoke(logLevel, msg)

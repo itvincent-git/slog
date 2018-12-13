@@ -24,7 +24,7 @@ class SimpleLogActivity : AppCompatActivity() {
         }
 
         button2.setOnClickListener {
-            log.verbose("simple log with vararg %d, %s, %s",
+            log.info("simple log with vararg %d, %s, %s",
                     1, "string", listOf(SimpleData("Lily", 16), SimpleData("Mike", 15)))
         }
     }
