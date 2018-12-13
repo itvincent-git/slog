@@ -22,6 +22,10 @@ class LogFileDispatcher(val logDirectory: File) {
                 val memoryMappedFile = RandomAccessFile(logFile, "rw")
                 val channel = memoryMappedFile.channel
                 currentMappedByteBuffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, fileMaxSize)
+                for (i in 0..(fileMaxSize - 1)) {
+                    currentMappedByteBuffer?.put(blank)
+                }
+                currentMappedByteBuffer?.position(0)
             }
             return currentMappedByteBuffer!!
         }
@@ -64,5 +68,6 @@ class LogFileDispatcher(val logDirectory: File) {
     companion object {
         val TAG = "LogFileDispatcher"
         val fileMaxSize = 1024 * 1024L
+        val blank = ' '.toByte()
     }
 }

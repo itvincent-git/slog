@@ -127,7 +127,7 @@ class LogComposor(val tag: String? = "", val composorDispatchers: List<ComposorD
         fun toStringiflyArray(arr: Array<out Any?>): Array<Any?> {
             val result = Array<Any?>(arr.size) {}
             arr.forEachIndexed { index, any ->
-                result[index] = (any.notPrimitiveToString())
+                result[index] = any.notPrimitiveToString()
             }
             return result
         }
