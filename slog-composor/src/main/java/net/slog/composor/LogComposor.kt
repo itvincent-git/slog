@@ -1,17 +1,24 @@
 package net.slog.composor
 
+import android.util.Log
 import kotlinx.coroutines.*
 import net.slog.SLogBinder
 import net.slog.logcat.LogcatLogger
+import java.io.PrintWriter
+import java.io.StringWriter
+import java.io.Writer
 import kotlin.coroutines.CoroutineContext
 
 /**
  * Created by zhongyongsheng on 2018/12/12.
  */
-class LogComposor(val tag: String? = "") : SLogBinder.SLogBindLogger, CoroutineScope {
+enum class LogLevel { Verbose, Debug, Info, Warn, Error }
+
+typealias ComposorDispatch = (LogLevel, String) -> Unit
+
+class LogComposor(val tag: String? = "", val composorDispatchers: List<ComposorDispatch>) : SLogBinder.SLogBindLogger, CoroutineScope {
 
     val job: Job = Job()
-    val dispatchers = mutableListOf<((String) -> Unit)>()
     val logcat = LogcatLogger(tag)
 
     override val coroutineContext: CoroutineContext
@@ -37,11 +44,11 @@ class LogComposor(val tag: String? = "") : SLogBinder.SLogBindLogger, CoroutineS
                 stringiflyArray = toStringiflyArray(objs)
                 async {
                     val formatMsg = msg.format(*stringiflyArray)
-                    dispatchMsg(formatMsg)
+                    dispatchMsg(LogLevel.Verbose, formatMsg)
                 }
             } else {
                 async {
-                    dispatchMsg(msg)
+                    dispatchMsg(LogLevel.Verbose, msg)
                 }
             }
         }
@@ -83,14 +90,20 @@ class LogComposor(val tag: String? = "") : SLogBinder.SLogBindLogger, CoroutineS
     override fun flush() {
     }
 
-    fun dispatchMsg(msg: String) {
+    private fun dispatchMsg(logLevel: LogLevel, msg: String) {
         logcat.verbose(msg)
-        dispatchers.forEach {
-            it.invoke(msg)
+        composorDispatchers.forEach {
+            try {
+                it.invoke(logLevel, msg)
+            } catch (t : Throwable) {
+                Log.e(TAG, "dispatchMsg error", t)
+            }
         }
     }
 
     companion object {
+        val TAG = "LogComposor"
+
         fun toStringiflyArray(arr: Array<out Any?>): Array<Any?> {
             val result = Array<Any?>(arr.size) {}
             arr.forEachIndexed { index, any ->
@@ -100,20 +113,5 @@ class LogComposor(val tag: String? = "") : SLogBinder.SLogBindLogger, CoroutineS
         }
 
 
-    }
-
-}
-
-fun Any?.notPrimitiveToString(): Any? {
-    return when (this) {
-        is Int -> this
-        is Long -> this
-        is Short -> this
-        is Byte -> this
-        is String -> this
-        is Float -> this
-        is Double -> this
-        is Boolean -> this
-        else -> this.toString()
     }
 }

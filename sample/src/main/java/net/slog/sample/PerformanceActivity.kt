@@ -7,8 +7,9 @@ import net.slog.SLoggerFactory
 import net.slog.composor.ComposorBinder
 import net.slog.file.LogFileDispatcher
 import java.io.File
+import kotlin.system.measureTimeMillis
 
-class SimpleLogActivity : AppCompatActivity() {
+class PerformanceActivity : AppCompatActivity() {
 
     init {
         SLoggerFactory.initialize(ComposorBinder(listOf(LogFileDispatcher(File("/sdcard/slog")).dispatcher)))
@@ -17,17 +18,26 @@ class SimpleLogActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_simple_log)
+        setContentView(R.layout.activity_performance)
 
         button.setOnClickListener {
-            log.verbose("simple log")
+            measureTimeMillis {
+                repeat(10000) {
+                    log.verbose("one day has %d %s", 24, "hours")
+                }
+            }.let {
+                println("performance 10k verbose time used $it ms")
+            }
         }
 
         button2.setOnClickListener {
-            log.verbose("simple log with vararg %d, %s, %s",
-                    1, "string", listOf(SimpleData("Lily", 16), SimpleData("Mike", 15)))
+            measureTimeMillis {
+                repeat(10000) {
+                    log.info("one day has %d %s", 24, "hours")
+                }
+            }.let {
+                println("performance 10k info time used $it ms")
+            }
         }
     }
-
-    data class SimpleData(val name: String, val age: Int)
 }
