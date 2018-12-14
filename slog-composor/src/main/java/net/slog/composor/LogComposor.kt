@@ -24,7 +24,7 @@ typealias ComposorDispatch = (LogLevel, String) -> Unit
 class LogComposor(val tag: String? = "", val composorDispatchers: List<ComposorDispatch>) : SLogBinder.SLogBindLogger {
 
     val logcat = LogcatLogger(tag)
-    val dateFormat = SimpleDateFormat("MM-dd hh:mm:ss.SSS")
+    val dateFormat = SimpleDateFormat(FORMAT)
 
     val handler: Handler by lazy {
         HandlerThread("LogComposor", Process.THREAD_PRIORITY_BACKGROUND)
@@ -48,17 +48,16 @@ class LogComposor(val tag: String? = "", val composorDispatchers: List<ComposorD
 
     override fun verbose(msg: String?, vararg objs: Any?) {
         if (msg != null) {
-            var stringiflyArray: Array<Any?>? = null
             val currentTime = System.currentTimeMillis()
             if (objs.isNotEmpty()) {
-                stringiflyArray = toStringiflyArray(objs)
+                val stringiflyArray = toStringiflyArray(objs)
                 handler.post {
                     val formatMsg = msg.format(*stringiflyArray)
-                    dispatchMsg(LogLevel.Verbose, currentTime, formatMsg)
+                    dispatchMsg(LogLevel.Verbose, appendTimeString(currentTime, formatMsg))
                 }
             } else {
                 handler.post {
-                    dispatchMsg(LogLevel.Verbose, currentTime, msg)
+                    dispatchMsg(LogLevel.Verbose, appendTimeString(currentTime, msg))
                 }
             }
         }
@@ -75,17 +74,16 @@ class LogComposor(val tag: String? = "", val composorDispatchers: List<ComposorD
 
     override fun info(msg: String?, vararg objs: Any?) {
         if (msg != null) {
-            var stringiflyArray: Array<Any?>? = null
             val currentTime = System.currentTimeMillis()
             if (objs.isNotEmpty()) {
-                stringiflyArray = toStringiflyArray(objs)
+                val stringiflyArray = toStringiflyArray(objs)
                 handler.post {
                     val formatMsg = msg.format(*stringiflyArray)
-                    dispatchMsg(LogLevel.Info, currentTime, formatMsg)
+                    dispatchMsg(LogLevel.Info, appendTimeString(currentTime, formatMsg))
                 }
             } else {
                 handler.post {
-                    dispatchMsg(LogLevel.Info, currentTime, msg)
+                    dispatchMsg(LogLevel.Info, appendTimeString(currentTime, msg))
                 }
             }
         }
@@ -115,8 +113,8 @@ class LogComposor(val tag: String? = "", val composorDispatchers: List<ComposorD
     override fun flush() {
     }
 
-    private fun dispatchMsg(logLevel: LogLevel, currentTime: Long, msg: String) {
-        logcat.verbose("[${dateFormat.format(Date(currentTime))}]$msg")
+    private fun dispatchMsg(logLevel: LogLevel, msg: String) {
+        logcat.verbose(msg)
         composorDispatchers.forEach {
             try {
                 it.invoke(logLevel, msg)
@@ -126,8 +124,13 @@ class LogComposor(val tag: String? = "", val composorDispatchers: List<ComposorD
         }
     }
 
+    fun appendTimeString(currentTime: Long, msg: String): String {
+        return "[${dateFormat.format(Date(currentTime))}]$msg"
+    }
+
     companion object {
         val TAG = "LogComposor"
+        val FORMAT = "MM-dd hh:mm:ss.SSS"
 
         fun toStringiflyArray(arr: Array<out Any?>): Array<Any?> {
             val result = Array<Any?>(arr.size) {}
