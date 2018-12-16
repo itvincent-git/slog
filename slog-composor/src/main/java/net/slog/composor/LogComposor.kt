@@ -19,20 +19,12 @@ import kotlin.coroutines.CoroutineContext
  */
 enum class LogLevel { Verbose, Debug, Info, Warn, Error }
 
-typealias ComposorDispatch = (LogLevel, String) -> Unit
+typealias ComposorDispatch = (String, LogLevel, String) -> Unit
 
-class LogComposor(val tag: String? = "", val composorDispatchers: List<ComposorDispatch>) : SLogBinder.SLogBindLogger {
+class LogComposor(val tag: String = "", val composorDispatchers: List<ComposorDispatch>) : SLogBinder.SLogBindLogger {
 
-    val logcat = LogcatLogger(tag)
+    //val logcat = LogcatLogger(tag)
     val dateFormat = SimpleDateFormat(FORMAT)
-
-    val handler: Handler by lazy {
-        HandlerThread("LogComposor", Process.THREAD_PRIORITY_BACKGROUND)
-            .let {
-                it.start()
-                Handler(it.looper)
-            }
-    }
 
     override fun isTraceEnable(): Boolean {
         return true
@@ -51,12 +43,12 @@ class LogComposor(val tag: String? = "", val composorDispatchers: List<ComposorD
             val currentTime = System.currentTimeMillis()
             if (objs.isNotEmpty()) {
                 val stringiflyArray = toStringiflyArray(objs)
-                handler.post {
+                ComposorUtil.handler.post {
                     val formatMsg = msg.format(*stringiflyArray)
                     dispatchMsg(LogLevel.Verbose, appendTimeString(currentTime, formatMsg))
                 }
             } else {
-                handler.post {
+                ComposorUtil.handler.post {
                     dispatchMsg(LogLevel.Verbose, appendTimeString(currentTime, msg))
                 }
             }
@@ -77,12 +69,12 @@ class LogComposor(val tag: String? = "", val composorDispatchers: List<ComposorD
             val currentTime = System.currentTimeMillis()
             if (objs.isNotEmpty()) {
                 val stringiflyArray = toStringiflyArray(objs)
-                handler.post {
+                ComposorUtil.handler.post {
                     val formatMsg = msg.format(*stringiflyArray)
                     dispatchMsg(LogLevel.Info, appendTimeString(currentTime, formatMsg))
                 }
             } else {
-                handler.post {
+                ComposorUtil.handler.post {
                     dispatchMsg(LogLevel.Info, appendTimeString(currentTime, msg))
                 }
             }
@@ -114,10 +106,10 @@ class LogComposor(val tag: String? = "", val composorDispatchers: List<ComposorD
     }
 
     private fun dispatchMsg(logLevel: LogLevel, msg: String) {
-        logcat.verbose(msg)
+        //logcat.verbose(msg)
         composorDispatchers.forEach {
             try {
-                it.invoke(logLevel, msg)
+                it.invoke(tag, logLevel, msg)
             } catch (t : Throwable) {
                 Log.e(TAG, "dispatchMsg error", t)
             }

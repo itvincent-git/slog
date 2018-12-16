@@ -12,7 +12,7 @@ import java.nio.channels.FileChannel
 /**
  * Created by zhongyongsheng on 2018/12/13.
  */
-class LogFileDispatcher(val logDirectory: File) {
+class LogFileDispatcher(val logDirectory: File): ComposorDispatch {
 
     private var currentMappedByteBuffer: MappedByteBuffer? = null
 
@@ -41,9 +41,7 @@ class LogFileDispatcher(val logDirectory: File) {
 
     protected val lineFeedCode = "\n".toByteArray()
 
-    //var fileUsedSize = 0
-
-    val dispatcher :ComposorDispatch = { logLevel, msg ->
+    override fun invoke(tag: String, logLevel: LogLevel, msg: String) {
         if (logLevel > LogLevel.Debug) {
             for (byte in msg.toByteArray()) {
                 mappedByteBuffer.put(byte)
@@ -51,7 +49,6 @@ class LogFileDispatcher(val logDirectory: File) {
             for (byte in lineFeedCode) {
                 mappedByteBuffer.put(byte)
             }
-            //println("[${Thread.currentThread().name}]call dispatcher $mappedByteBuffer")
         }
     }
 

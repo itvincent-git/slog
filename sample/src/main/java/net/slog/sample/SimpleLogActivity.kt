@@ -5,13 +5,16 @@ import android.os.Bundle
 import kotlinx.android.synthetic.main.activity_simple_log.*
 import net.slog.SLoggerFactory
 import net.slog.composor.ComposorBinder
+import net.slog.composor.logcat.LogcatDispatcher
 import net.slog.file.LogFileDispatcher
 import java.io.File
 
 class SimpleLogActivity : AppCompatActivity() {
 
     init {
-        SLoggerFactory.initialize(ComposorBinder(listOf(LogFileDispatcher(File("/sdcard/slog")).dispatcher)))
+        SLoggerFactory.initialize(
+                ComposorBinder(
+                        listOf(LogcatDispatcher(), LogFileDispatcher(File("/sdcard/slog")))))
     }
     val log = SLoggerFactory.getLogger("SimpleLogActivity")
 

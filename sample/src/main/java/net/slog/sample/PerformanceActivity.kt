@@ -2,9 +2,11 @@ package net.slog.sample
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import kotlinx.android.synthetic.main.activity_performance.*
 import net.slog.SLoggerFactory
 import net.slog.composor.ComposorBinder
+import net.slog.composor.logcat.LogcatDispatcher
 import net.slog.file.LogFileDispatcher
 import java.io.File
 import kotlin.system.measureTimeMillis
@@ -12,9 +14,12 @@ import kotlin.system.measureTimeMillis
 class PerformanceActivity : AppCompatActivity() {
 
     init {
-        SLoggerFactory.initialize(ComposorBinder(listOf(LogFileDispatcher(File("/sdcard/slog")).dispatcher)))
+        SLoggerFactory.initialize(
+                ComposorBinder(
+                        listOf(LogcatDispatcher(), LogFileDispatcher(File("/sdcard/slog")
+                        ))))
     }
-    val log = SLoggerFactory.getLogger("SimpleLogActivity")
+    val log = SLoggerFactory.getLogger("PerformanceActivity")
     val count = 100
     var counter = 0
 
@@ -29,7 +34,7 @@ class PerformanceActivity : AppCompatActivity() {
                     log.verbose("performance test %s %d", "number", counter++)
                 }
             }.let {
-                println("performance 10k verbose time used $it ms")
+                Log.i("PerformanceActivity", "performance 10k verbose time used $it ms")
             }
         }
 
@@ -41,7 +46,7 @@ class PerformanceActivity : AppCompatActivity() {
                     //println("test after $counter")
                 }
             }.let {
-                println("performance 10k info time used $it ms")
+                Log.i("PerformanceActivity", "performance 10k info time used $it ms")
             }
         }
     }
