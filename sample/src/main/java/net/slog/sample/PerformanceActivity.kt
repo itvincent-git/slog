@@ -27,8 +27,8 @@ class PerformanceActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_performance)
 
-        button.text = "$count verbose"
-        button.setOnClickListener {
+        v_button.text = "$count verbose"
+        v_button.setOnClickListener {
             measureTimeMillis {
                 repeat(count) {
                     log.verbose("performance test %s %d", "number", counter++)
@@ -38,8 +38,8 @@ class PerformanceActivity : AppCompatActivity() {
             }
         }
 
-        button2.text = "$count info"
-        button2.setOnClickListener {
+        vv_button.text = "$count info"
+        vv_button.setOnClickListener {
             measureTimeMillis {
                 repeat(count) {
                     log.info("performance test %s %d", "number", counter++)

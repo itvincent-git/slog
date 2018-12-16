@@ -8,6 +8,7 @@ import net.slog.composor.ComposorBinder
 import net.slog.composor.logcat.LogcatDispatcher
 import net.slog.file.LogFileDispatcher
 import java.io.File
+import java.lang.RuntimeException
 
 class SimpleLogActivity : AppCompatActivity() {
 
@@ -22,13 +23,30 @@ class SimpleLogActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_simple_log)
 
-        button.setOnClickListener {
-            log.verbose("simple log")
+        v_button.setOnClickListener {
+            log.verbose("verbose log")
         }
 
-        button2.setOnClickListener {
-            log.info("simple log with vararg %d, %s, %s",
+        vv_button.setOnClickListener {
+            log.verbose("verbose log with vararg %d, %s, %s",
                     1, "string", listOf(SimpleData("Lily", 16), SimpleData("Mike", 15)))
+        }
+
+        d_button.setOnClickListener {
+            log.debug("debug log")
+        }
+
+        i_button.setOnClickListener {
+            log.info("info log")
+        }
+
+        w_button.setOnClickListener {
+            log.warn("warn log")
+        }
+
+        e_button.setOnClickListener {
+            log.error("error log")
+            log.error("error with throwable", RuntimeException("test exception"))
         }
     }
 
