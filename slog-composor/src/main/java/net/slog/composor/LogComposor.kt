@@ -78,6 +78,7 @@ class LogComposor(val mTag: String = "", val composorDispatchers: List<ComposorD
     }
 
     override fun flush() {
+        //nothing to do
     }
 
     fun processLog(tag: String, level:LogLevel, msg: String?, throwable: Throwable?, vararg objs: Any?) {
@@ -127,8 +128,8 @@ class LogComposor(val mTag: String = "", val composorDispatchers: List<ComposorD
     }
 
     companion object {
-        val TAG = "LogComposor"
-        val FORMAT = "MM-dd hh:mm:ss.SSS"
+        const val TAG = "LogComposor"
+        const val FORMAT = "MM-dd hh:mm:ss.SSS"
 
         fun toStringiflyArray(arr: Array<out Any?>): Array<Any?> {
             val result = Array<Any?>(arr.size) {}
