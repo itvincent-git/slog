@@ -129,7 +129,7 @@ class LogComposor(val mTag: String = "", val composorDispatchers: List<ComposorD
 
     companion object {
         const val TAG = "LogComposor"
-        const val FORMAT = "MM-dd hh:mm:ss.SSS"
+        const val FORMAT = "yy-MM-dd hh:mm:ss.SSS"
 
         fun toStringiflyArray(arr: Array<out Any?>): Array<Any?> {
             val result = Array<Any?>(arr.size) {}
