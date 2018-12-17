@@ -29,24 +29,46 @@ class SimpleLogActivity : AppCompatActivity() {
 
         vv_button.setOnClickListener {
             log.verbose("verbose log with vararg %d, %s, %s",
-                    1, "string", listOf(SimpleData("Lily", 16), SimpleData("Mike", 15)))
+                    1, "string", listOf(SimpleData("Lily", 11), SimpleData("Mike", 11)))
         }
 
         d_button.setOnClickListener {
             log.debug("debug log")
         }
 
+        dv_button.setOnClickListener {
+            log.debug("debug log with vararg %d, %s, %s",
+                    1, "string", listOf(SimpleData("Lily2", 12), SimpleData("Mike2", 12)))
+        }
+
         i_button.setOnClickListener {
             log.info("info log")
+        }
+
+        iv_button.setOnClickListener {
+            log.info("info log with vararg %d, %s, %s",
+                    1, "string", listOf(SimpleData("Lily3", 13), SimpleData("Mike3", 13)))
         }
 
         w_button.setOnClickListener {
             log.warn("warn log")
         }
 
+        wv_button.setOnClickListener {
+            log.warn("warn log with vararg %d, %s, %s",
+                    1, "string", listOf(SimpleData("Lily4", 14), SimpleData("Mike4", 14)))
+        }
+
         e_button.setOnClickListener {
             log.error("error log")
             log.error("error with throwable", RuntimeException("test exception"))
+        }
+
+        ev_button.setOnClickListener {
+            log.error("error log with vararg %d, %s, %s",
+                    1, "string", listOf(SimpleData("Lily5", 15), SimpleData("Mike5", 15)))
+            log.error("error log with throwable with vararg %d, %s, %s", RuntimeException("test exception"),
+                    1, "string", listOf(SimpleData("Lily5", 15), SimpleData("Mike5", 15)))
         }
     }
 
