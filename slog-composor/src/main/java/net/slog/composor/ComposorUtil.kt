@@ -1,10 +1,11 @@
 package net.slog.composor
 
-import android.os.Handler
-import android.os.HandlerThread
-import android.os.Process
+import android.os.*
+import android.util.Log
 
 /**
+ * utils for Composor
+ *
  * Created by zhongyongsheng on 2018/12/13.
  */
 
@@ -27,7 +28,22 @@ object ComposorUtil {
         HandlerThread("LogComposor", Process.THREAD_PRIORITY_BACKGROUND)
                 .let {
                     it.start()
-                    Handler(it.looper)
+                    SafeDispatchHandler(it.looper)
                 }
+    }
+}
+
+class SafeDispatchHandler(looper: Looper) : Handler(looper) {
+
+    override fun dispatchMessage(msg: Message) {
+        try {
+            super.dispatchMessage(msg)
+        } catch (t: Throwable) {
+            Log.e(TAG, "dispatchMessage error", t)
+        }
+    }
+
+    companion object {
+        private const val TAG = "SafeDispatchHandler"
     }
 }

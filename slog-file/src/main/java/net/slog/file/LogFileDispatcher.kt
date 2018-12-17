@@ -10,6 +10,7 @@ import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
 
 /**
+ * 输出日志
  * Created by zhongyongsheng on 2018/12/13.
  */
 class LogFileDispatcher(val logDirectory: File): ComposorDispatch {
@@ -41,6 +42,9 @@ class LogFileDispatcher(val logDirectory: File): ComposorDispatch {
 
     protected val lineFeedCode = "\n".toByteArray()
 
+    /**
+     * ComposorDispatch实现方法
+     */
     override fun invoke(tag: String, logLevel: LogLevel, msg: String) {
         if (logLevel > LogLevel.Debug) {
             for (byte in msg.toByteArray()) {

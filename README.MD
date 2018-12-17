@@ -12,6 +12,7 @@ An Android log tools, with logcat and file log used mmap.
 [ ] 可定义日志等级输出到文件
 [ ] 自动压缩日志文件
 [ ] 日志文件管理接口
+[ ] 没有写文件权限的保护
 
 ### 性能测试
 

@@ -5,7 +5,7 @@ import net.slog.composor.ComposorDispatch
 import net.slog.composor.LogLevel
 
 /**
- *
+ * logcat dispatcher
  * @author zhongyongsheng
  */
 class LogcatDispatcher: ComposorDispatch {
