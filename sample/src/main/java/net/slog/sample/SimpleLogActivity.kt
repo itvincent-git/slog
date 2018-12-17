@@ -1,22 +1,12 @@
 package net.slog.sample
 
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_simple_log.*
 import net.slog.SLoggerFactory
-import net.slog.composor.ComposorBinder
-import net.slog.composor.logcat.LogcatDispatcher
-import net.slog.file.LogFileDispatcher
-import java.io.File
-import java.lang.RuntimeException
 
 class SimpleLogActivity : AppCompatActivity() {
 
-    init {
-        SLoggerFactory.initialize(
-                ComposorBinder(
-                        listOf(LogcatDispatcher(), LogFileDispatcher(File("/sdcard/slog")))))
-    }
     val log = SLoggerFactory.getLogger("SimpleLogActivity")
 
     override fun onCreate(savedInstanceState: Bundle?) {

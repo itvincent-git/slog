@@ -1,9 +1,18 @@
 # SLog
-An Android log framework, with logcat and file log used mmap. 
+An Android log tools, with logcat and file log used mmap. 
 
 ## 中文
-- 日志文件不丢失
-- logcat日志中添加上发生的时间点
-- 自动按当前时间生成日志文件名
-- 日志文件自动分文件，例如1M一个文件
+一个Android的日志工具，会输出logcat及写入文件。目标是高性能、轻量化、接口化。
+
+### 支持功能
+[x] 日志文件不丢失
+[x] logcat日志中添加上发生的时间点
+[ ] 自动按当前时间生成日志文件名
+[ ] 日志文件自动分文件，例如1M一个文件
+[ ] 可定义日志等级输出到文件
+[ ] 自动压缩日志文件
+[ ] 日志文件管理接口
+
+### 性能测试
+
 

@@ -12,10 +12,10 @@ enum class LogLevel { Verbose, Debug, Info, Warn, Error }
 
 typealias ComposorDispatch = (String, LogLevel, String) -> Unit
 
-class LogComposor(val mTag: String = "", val composorDispatchers: List<ComposorDispatch>) : SLogBinder.SLogBindLogger {
-
-    //val logcat = LogcatLogger(tag)
-    val dateFormat = SimpleDateFormat(FORMAT)
+class LogComposor(val mTag: String = "",
+                  val mComposorDispatchers: List<ComposorDispatch>) : SLogBinder.SLogBindLogger {
+    val mFormat = "yy-MM-dd hh:mm:ss.SSS"
+    val dateFormat = SimpleDateFormat(mFormat)
 
     override fun isTraceEnable(): Boolean {
         return true
@@ -81,7 +81,7 @@ class LogComposor(val mTag: String = "", val composorDispatchers: List<ComposorD
         //nothing to do
     }
 
-    fun processLog(tag: String, level:LogLevel, msg: String?, throwable: Throwable?, vararg objs: Any?) {
+    protected fun processLog(tag: String, level:LogLevel, msg: String?, throwable: Throwable?, vararg objs: Any?) {
         if (msg != null) {
             val currentTime = System.currentTimeMillis()
             if (objs.isNotEmpty()) {
@@ -112,9 +112,8 @@ class LogComposor(val mTag: String = "", val composorDispatchers: List<ComposorD
         }
     }
 
-    private fun dispatchMsg(tag: String, logLevel: LogLevel, msg: String) {
-        //logcat.verbose(msg)
-        composorDispatchers.forEach {
+    protected fun dispatchMsg(tag: String, logLevel: LogLevel, msg: String) {
+        mComposorDispatchers.forEach {
             try {
                 it.invoke(tag, logLevel, msg)
             } catch (t : Throwable) {
@@ -123,13 +122,12 @@ class LogComposor(val mTag: String = "", val composorDispatchers: List<ComposorD
         }
     }
 
-    fun appendTimeString(currentTime: Long, msg: String): String {
+    protected fun appendTimeString(currentTime: Long, msg: String): String {
         return "[${dateFormat.format(Date(currentTime))}]$msg"
     }
 
     companion object {
         const val TAG = "LogComposor"
-        const val FORMAT = "yy-MM-dd hh:mm:ss.SSS"
 
         fun toStringiflyArray(arr: Array<out Any?>): Array<Any?> {
             val result = Array<Any?>(arr.size) {}

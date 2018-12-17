@@ -8,10 +8,30 @@ import net.slog.SLogBinder
  * Created by zhongyongsheng on 2018/3/19.
  */
 
-class ComposorBinder(composorDispatchers: List<ComposorDispatch>) : SLogBinder {
+class ComposorBinder internal constructor(composorDispatchers: List<ComposorDispatch>) : SLogBinder {
     internal var loggerFactory: ILoggerFactory = ComposorLoggerFactory(composorDispatchers)
 
     override fun getILoggerFactory(): ILoggerFactory {
         return loggerFactory
+    }
+
+}
+
+class ComposorBinderBuilder() {
+    private val mComposorDispatchers: MutableList<ComposorDispatch> = mutableListOf()
+    private var mLogLevel = LogLevel.Verbose
+
+    fun addDispatcher(dispatch: ComposorDispatch): ComposorBinderBuilder {
+        mComposorDispatchers.add(dispatch)
+        return this
+    }
+
+    fun logLevel(logLevel: LogLevel): ComposorBinderBuilder {
+        mLogLevel = logLevel
+        return this
+    }
+
+    fun build(): ComposorBinder {
+        return ComposorBinder(mComposorDispatchers)
     }
 }

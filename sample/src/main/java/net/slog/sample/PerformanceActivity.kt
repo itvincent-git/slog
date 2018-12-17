@@ -1,24 +1,13 @@
 package net.slog.sample
 
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
+import android.support.v7.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_performance.*
 import net.slog.SLoggerFactory
-import net.slog.composor.ComposorBinder
-import net.slog.composor.logcat.LogcatDispatcher
-import net.slog.file.LogFileDispatcher
-import java.io.File
 import kotlin.system.measureTimeMillis
 
 class PerformanceActivity : AppCompatActivity() {
 
-    init {
-        SLoggerFactory.initialize(
-                ComposorBinder(
-                        listOf(LogcatDispatcher(), LogFileDispatcher(File("/sdcard/slog")
-                        ))))
-    }
     val log = SLoggerFactory.getLogger("PerformanceActivity")
     val count = 100
     var counter = 0
