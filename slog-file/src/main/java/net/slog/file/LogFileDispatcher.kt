@@ -8,12 +8,18 @@ import java.io.RandomAccessFile
 import java.lang.IllegalArgumentException
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  * 输出日志
  * Created by zhongyongsheng on 2018/12/13.
  */
-class LogFileDispatcher(val logDirectory: File): ComposorDispatch {
+class LogFileDispatcher(/*日志目录*/val logDirectory: File,
+                        /*日志文件前缀*/val logFilePrefix: String = "logs",
+                        /*单个日志文件大小*/val fileMaxSize: Long = 1024 * 1024L): ComposorDispatch {
+    val mFormat = "yyyy_MM_dd_hh_mm_ss"
+    val dateFormat = SimpleDateFormat(mFormat)
 
     private var currentMappedByteBuffer: MappedByteBuffer? = null
 
@@ -22,10 +28,14 @@ class LogFileDispatcher(val logDirectory: File): ComposorDispatch {
             if (currentMappedByteBuffer == null) {
                 val memoryMappedFile = RandomAccessFile(logFile, "rw")
                 val channel = memoryMappedFile.channel
+
+                //reset file to put blank byte, avoid the unknown char at the end of the file
                 currentMappedByteBuffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, fileMaxSize)
                 for (i in 0..(fileMaxSize - 1)) {
                     currentMappedByteBuffer?.put(blank)
                 }
+
+                //revert to the start position
                 currentMappedByteBuffer?.position(0)
             }
             return currentMappedByteBuffer!!
@@ -36,11 +46,9 @@ class LogFileDispatcher(val logDirectory: File): ComposorDispatch {
     protected val logFile: File
         get() {
             if (currentLogFile == null)
-                currentLogFile = File(logDirectory, "log.txt")
+                currentLogFile = File(logDirectory, "${logFilePrefix}_${dateFormat.format(Date())}.txt")
             return currentLogFile!!
         }
-
-    protected val lineFeedCode = "\n".toByteArray()
 
     /**
      * ComposorDispatch实现方法
@@ -68,7 +76,7 @@ class LogFileDispatcher(val logDirectory: File): ComposorDispatch {
 
     companion object {
         val TAG = "LogFileDispatcher"
-        val fileMaxSize = 1024 * 1024L
-        val blank = ' '.toByte()
+        protected val lineFeedCode = "\n".toByteArray()
+        protected val blank = ' '.toByte()
     }
 }
