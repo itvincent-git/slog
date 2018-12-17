@@ -8,12 +8,12 @@ import net.slog.SLogBinder
  * Created by zhongyongsheng on 2018/3/19.
  */
 
-class ComposorLoggerFactory(val logLevel: LogLevel, val composorDispatchers: List<ComposorDispatch>) : ILoggerFactory {
+class ComposorLoggerFactory : ILoggerFactory {
     override fun getLogger(cls: Class<*>): SLogBinder.SLogBindLogger {
-        return LogComposor(cls.simpleName, logLevel, composorDispatchers)
+        return ComposorLogBindLogger(cls.simpleName)
     }
 
     override fun getLogger(name: String): SLogBinder.SLogBindLogger {
-        return LogComposor(name, logLevel, composorDispatchers)
+        return ComposorLogBindLogger(name)
     }
 }

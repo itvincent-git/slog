@@ -1,7 +1,6 @@
 package net.slog.composor
 
 import android.util.Log
-import net.slog.SLogBinder
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -15,77 +14,14 @@ enum class LogLevel(val logMsg: String) {
 
 typealias ComposorDispatch = (String, LogLevel, String) -> Unit
 
-class LogComposor(val mTag: String = "",
-                  val mLogLevel: LogLevel,
-                  val mComposorDispatchers: List<ComposorDispatch>) : SLogBinder.SLogBindLogger {
-    val mFormat = "hh:mm:ss.SSS"
-    val dateFormat = SimpleDateFormat(mFormat)
+/**
+ * 每次SLoggerFactory.getLogger()都会创建一个
+ */
+class LogComposor(val mLogLevel: LogLevel,
+                  val mComposorDispatchers: List<ComposorDispatch>) {
 
-    override fun isTraceEnable(): Boolean {
-        return mLogLevel <= LogLevel.Verbose
-    }
 
-    override fun isDebugEnable(): Boolean {
-        return mLogLevel <= LogLevel.Debug
-    }
-
-    override fun isInfoEnable(): Boolean {
-        return mLogLevel <= LogLevel.Info
-    }
-
-    override fun verbose(msg: String?, vararg objs: Any?) {
-        processLog(mTag, LogLevel.Verbose, msg, null,  *objs)
-    }
-
-    override fun verbose(tag: String?, msg: String?, vararg objs: Any?) {
-        processLog(tag ?: "", LogLevel.Verbose, msg, null,  *objs)
-    }
-
-    override fun debug(msg: String?, vararg objs: Any?) {
-        processLog(mTag, LogLevel.Debug, msg, null, *objs)
-    }
-
-    override fun debug(tag: String?, msg: String?, vararg objs: Any?) {
-        processLog(tag ?: "", LogLevel.Debug, msg, null, *objs)
-    }
-
-    override fun info(msg: String?, vararg objs: Any?) {
-        processLog(mTag, LogLevel.Info, msg, null, *objs)
-    }
-
-    override fun info(tag: String?, msg: String?, vararg objs: Any?) {
-        processLog(tag ?: "", LogLevel.Info, msg, null, *objs)
-    }
-
-    override fun warn(msg: String?, vararg objs: Any?) {
-        processLog(mTag, LogLevel.Warn, msg, null, *objs)
-    }
-
-    override fun warn(tag: String?, msg: String?, vararg objs: Any?) {
-        processLog(tag ?: "", LogLevel.Warn, msg, null, *objs)
-    }
-
-    override fun error(msg: String?, vararg objs: Any?) {
-        processLog(mTag, LogLevel.Error, msg, null, *objs)
-    }
-
-    override fun error(msg: String?, throwable: Throwable?, vararg objs: Any?) {
-        processLog(mTag, LogLevel.Error, msg, throwable, *objs)
-    }
-
-    override fun error(tag: String?, msg: String?, vararg objs: Any?) {
-        processLog(mTag, LogLevel.Error, msg, null, *objs)
-    }
-
-    override fun error(tag: String?, msg: String?, throwable: Throwable?, vararg objs: Any?) {
-        processLog(tag ?: "", LogLevel.Error, msg, throwable, *objs)
-    }
-
-    override fun flush() {
-        //nothing to do
-    }
-
-    protected fun processLog(tag: String, level:LogLevel, msg: String?, throwable: Throwable?, vararg objs: Any?) {
+    internal fun processLog(tag: String, level:LogLevel, msg: String?, throwable: Throwable?, vararg objs: Any?) {
         if (msg != null) {
             val currentTime = System.currentTimeMillis()
             if (objs.isNotEmpty()) {
@@ -135,6 +71,8 @@ class LogComposor(val mTag: String = "",
 
     companion object {
         const val TAG = "LogComposor"
+        const val mFormat = "hh:mm:ss.SSS"
+        val dateFormat = SimpleDateFormat(mFormat)
 
         fun toStringiflyArray(arr: Array<out Any?>): Array<Any?> {
             val result = Array<Any?>(arr.size) {}

@@ -5,7 +5,6 @@ import net.slog.composor.ComposorDispatch
 import net.slog.composor.LogLevel
 import java.io.File
 import java.io.RandomAccessFile
-import java.lang.IllegalArgumentException
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
 import java.text.SimpleDateFormat
@@ -17,9 +16,11 @@ import java.util.*
  */
 class LogFileDispatcher(/*日志目录*/val logDirectory: File,
                         /*日志文件前缀*/val logFilePrefix: String = "logs",
+                        /*日志文件后缀*/val logFileSurfix: String = ".txt",
                         /*单个日志文件大小*/val fileMaxSize: Long = 1024 * 1024L): ComposorDispatch {
     val mFormat = "yyyy_MM_dd_hh_mm_ss"
     val dateFormat = SimpleDateFormat(mFormat)
+    val mLogFileManager = LogFileManager(logDirectory, logFilePrefix)
 
     private var currentMappedByteBuffer: MappedByteBuffer? = null
 
@@ -37,6 +38,8 @@ class LogFileDispatcher(/*日志目录*/val logDirectory: File,
 
                 //revert to the start position
                 currentMappedByteBuffer?.position(0)
+
+                mLogFileManager.compressBakLogFile(logFile)
             }
             return currentMappedByteBuffer!!
         }
@@ -46,7 +49,7 @@ class LogFileDispatcher(/*日志目录*/val logDirectory: File,
     protected val logFile: File
         get() {
             if (currentLogFile == null)
-                currentLogFile = File(logDirectory, "${logFilePrefix}_${dateFormat.format(Date())}.txt")
+                currentLogFile = File(logDirectory, "${logFilePrefix}_${dateFormat.format(Date())}$logFileSurfix")
             return currentLogFile!!
         }
 
@@ -55,11 +58,15 @@ class LogFileDispatcher(/*日志目录*/val logDirectory: File,
      */
     override fun invoke(tag: String, logLevel: LogLevel, msg: String) {
         if (logLevel > LogLevel.Debug) {
-            for (byte in msg.toByteArray()) {
-                mappedByteBuffer.put(byte)
-            }
-            for (byte in lineFeedCode) {
-                mappedByteBuffer.put(byte)
+            try {
+                for (byte in msg.toByteArray()) {
+                    mappedByteBuffer.put(byte)
+                }
+                for (byte in lineFeedCode) {
+                    mappedByteBuffer.put(byte)
+                }
+            } catch (t: Throwable) {
+                Log.e(TAG, "invoke error", t)
             }
         }
     }
