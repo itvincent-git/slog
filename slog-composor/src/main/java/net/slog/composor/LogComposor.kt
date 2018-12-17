@@ -16,7 +16,7 @@ typealias ComposorDispatch = (String, LogLevel, String) -> Unit
 
 class LogComposor(val mTag: String = "",
                   val mComposorDispatchers: List<ComposorDispatch>) : SLogBinder.SLogBindLogger {
-    val mFormat = "yy-MM-dd hh:mm:ss.SSS"
+    val mFormat = "hh:mm:ss.SSS"
     val dateFormat = SimpleDateFormat(mFormat)
 
     override fun isTraceEnable(): Boolean {

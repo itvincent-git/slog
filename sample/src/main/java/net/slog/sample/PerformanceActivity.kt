@@ -38,5 +38,19 @@ class PerformanceActivity : AppCompatActivity() {
                 log.verbose("performance 10k info time used $it ms")
             }
         }
+
+        val list = mutableListOf<Int>()
+        info_list_button.text = "$count info list"
+        info_list_button.setOnClickListener {
+            measureTimeMillis {
+                repeat(count) {
+                    list += counter++
+                    log.info("performance test %s", list)
+                    //println("test after $counter")
+                }
+            }.let {
+                log.verbose("performance 10k info time used $it ms")
+            }
+        }
     }
 }

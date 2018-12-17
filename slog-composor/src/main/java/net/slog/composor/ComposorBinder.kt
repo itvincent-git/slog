@@ -17,7 +17,10 @@ class ComposorBinder internal constructor(composorDispatchers: List<ComposorDisp
 
 }
 
-class ComposorBinderBuilder() {
+/**
+ * composor builder，用于生成ComposorBinder
+ */
+class ComposorBinderBuilder {
     private val mComposorDispatchers: MutableList<ComposorDispatch> = mutableListOf()
     private var mLogLevel = LogLevel.Verbose
 
