@@ -34,7 +34,7 @@ class PerformanceActivity : AppCompatActivity() {
                     log.verbose("performance test %s %d", "number", counter++)
                 }
             }.let {
-                Log.i("PerformanceActivity", "performance 10k verbose time used $it ms")
+                log.verbose("performance 10k verbose time used $it ms")
             }
         }
 
@@ -46,7 +46,7 @@ class PerformanceActivity : AppCompatActivity() {
                     //println("test after $counter")
                 }
             }.let {
-                Log.i("PerformanceActivity", "performance 10k info time used $it ms")
+                log.verbose("performance 10k info time used $it ms")
             }
         }
     }
