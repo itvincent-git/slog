@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
+ * 日志组装，包括各种扩展信息组装成字符串后，通过ComposorDispatch分发到logcat、logfile
  * Created by zhongyongsheng on 2018/12/12.
  */
 enum class LogLevel(val logMsg: String) {
@@ -15,20 +16,21 @@ enum class LogLevel(val logMsg: String) {
 typealias ComposorDispatch = (String, LogLevel, String) -> Unit
 
 class LogComposor(val mTag: String = "",
+                  val mLogLevel: LogLevel,
                   val mComposorDispatchers: List<ComposorDispatch>) : SLogBinder.SLogBindLogger {
     val mFormat = "hh:mm:ss.SSS"
     val dateFormat = SimpleDateFormat(mFormat)
 
     override fun isTraceEnable(): Boolean {
-        return true
+        return mLogLevel <= LogLevel.Verbose
     }
 
     override fun isDebugEnable(): Boolean {
-        return true
+        return mLogLevel <= LogLevel.Debug
     }
 
     override fun isInfoEnable(): Boolean {
-        return true
+        return mLogLevel <= LogLevel.Info
     }
 
     override fun verbose(msg: String?, vararg objs: Any?) {
