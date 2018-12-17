@@ -8,7 +8,9 @@ import java.util.*
 /**
  * Created by zhongyongsheng on 2018/12/12.
  */
-enum class LogLevel { Verbose, Debug, Info, Warn, Error }
+enum class LogLevel(val logMsg: String) {
+    Verbose("V/"), Debug("D/"), Info("I/"), Warn("W/"), Error("E/");
+}
 
 typealias ComposorDispatch = (String, LogLevel, String) -> Unit
 
@@ -95,12 +97,12 @@ class LogComposor(val mTag: String = "",
                             it
                         }
                     }
-                    dispatchMsg(tag, level, appendTimeString(currentTime, formatMsg))
+                    dispatchMsg(tag, level, appendExternalString(currentTime, tag, level, formatMsg))
                 }
             } else {
                 ComposorUtil.handler.post {
 
-                    dispatchMsg(tag, level, appendTimeString(currentTime, msg.let {
+                    dispatchMsg(tag, level, appendExternalString(currentTime, tag, level, msg.let {
                         if (throwable != null) {
                             it + "\n" + Log.getStackTraceString(throwable)
                         } else {
@@ -122,8 +124,11 @@ class LogComposor(val mTag: String = "",
         }
     }
 
-    protected fun appendTimeString(currentTime: Long, msg: String): String {
-        return "[${dateFormat.format(Date(currentTime))}]$msg"
+    /**
+     * 扩展日志信息
+     */
+    protected fun appendExternalString(currentTime: Long, tag: String, logLevel: LogLevel, msg: String): String {
+        return "${dateFormat.format(Date(currentTime))} ${logLevel.logMsg}$tag: $msg"
     }
 
     companion object {
