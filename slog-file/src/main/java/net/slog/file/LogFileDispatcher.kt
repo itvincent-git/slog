@@ -16,7 +16,8 @@ import java.util.*
 class LogFileDispatcher(/*日志目录*/val logDirectory: File,
                         /*日志文件前缀*/val logFilePrefix: String = "logs",
                         /*日志文件后缀*/val logFileSurfix: String = ".txt",
-                        /*单个日志文件大小*/val fileMaxSize: Long = 1024 * 1024L): ComposorDispatch {
+                        /*单个日志文件大小*/val fileMaxSize: Long = 1024 * 1024L,
+                        /*指定达到这个级别及以上的日志才输出到日志*/val logFileLevel: LogLevel = LogLevel.Info): ComposorDispatch {
     val mFormat = "yyyy_MM_dd_hh_mm_ss"
     val dateFormat = SimpleDateFormat(mFormat)
     val mLogFileManager = LogFileManager(logDirectory, logFilePrefix)
@@ -49,7 +50,7 @@ class LogFileDispatcher(/*日志目录*/val logDirectory: File,
      * ComposorDispatch实现方法
      */
     override fun invoke(tag: String, logLevel: LogLevel, msg: String) {
-        if (logLevel > LogLevel.Debug) {
+        if (logLevel >= logFileLevel) {
             try {
                 for (byte in msg.toByteArray()) {
                     writeToMappedByteBuffer(byte)
