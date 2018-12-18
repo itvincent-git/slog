@@ -4,9 +4,8 @@ import android.util.Log
 import net.slog.composor.ComposorDispatch
 import net.slog.composor.LogLevel
 import java.io.File
-import java.io.RandomAccessFile
+import java.nio.BufferOverflowException
 import java.nio.MappedByteBuffer
-import java.nio.channels.FileChannel
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -27,18 +26,7 @@ class LogFileDispatcher(/*日志目录*/val logDirectory: File,
     protected val mappedByteBuffer: MappedByteBuffer
         get() {
             if (currentMappedByteBuffer == null) {
-                val memoryMappedFile = RandomAccessFile(logFile, "rw")
-                val channel = memoryMappedFile.channel
-
-                //reset file to put blank byte, avoid the unknown char at the end of the file
-                currentMappedByteBuffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, fileMaxSize)
-                for (i in 0..(fileMaxSize - 1)) {
-                    currentMappedByteBuffer?.put(blank)
-                }
-
-                //revert to the start position
-                currentMappedByteBuffer?.position(0)
-
+                currentMappedByteBuffer = logFile.toMappedByteBuffer(fileMaxSize)
                 mLogFileManager.compressBakLogFile(logFile)
             }
             return currentMappedByteBuffer!!
@@ -49,9 +37,13 @@ class LogFileDispatcher(/*日志目录*/val logDirectory: File,
     protected val logFile: File
         get() {
             if (currentLogFile == null)
-                currentLogFile = File(logDirectory, "${logFilePrefix}_${dateFormat.format(Date())}$logFileSurfix")
+                currentLogFile = getNewLogFile()
             return currentLogFile!!
         }
+
+    protected fun getNewLogFile(): File {
+        return File(logDirectory, "${logFilePrefix}_${dateFormat.format(Date())}$logFileSurfix")
+    }
 
     /**
      * ComposorDispatch实现方法
@@ -60,15 +52,31 @@ class LogFileDispatcher(/*日志目录*/val logDirectory: File,
         if (logLevel > LogLevel.Debug) {
             try {
                 for (byte in msg.toByteArray()) {
-                    mappedByteBuffer.put(byte)
+                    writeToMappedByteBuffer(byte)
                 }
                 for (byte in lineFeedCode) {
-                    mappedByteBuffer.put(byte)
+                    writeToMappedByteBuffer(byte)
                 }
             } catch (t: Throwable) {
                 Log.e(TAG, "invoke error", t)
             }
         }
+    }
+
+    private inline fun writeToMappedByteBuffer(byte: Byte) {
+        try {
+            mappedByteBuffer.put(byte)
+        } catch (boe: BufferOverflowException) {
+            //超时了文件上限大小，创建一个新文件
+            createNewMappedByteBuffer()
+            mappedByteBuffer.put(byte)
+        }
+    }
+
+    fun createNewMappedByteBuffer() {
+        currentLogFile = getNewLogFile()
+        currentMappedByteBuffer = logFile.toMappedByteBuffer(fileMaxSize)
+        mLogFileManager.compressBakLogFile(logFile)
     }
 
     init {
@@ -84,6 +92,6 @@ class LogFileDispatcher(/*日志目录*/val logDirectory: File,
     companion object {
         val TAG = "LogFileDispatcher"
         protected val lineFeedCode = "\n".toByteArray()
-        protected val blank = ' '.toByte()
+
     }
 }

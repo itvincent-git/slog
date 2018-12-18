@@ -17,6 +17,7 @@ class LogFileManager(/*日志目录*/val logDirectory: File,
 
     /**
      * 除当前的日志文件外，压缩logDirectory目录下.txt文件为.zip
+     * @param currentLogFile 排除这个文件不压缩
      */
     fun compressBakLogFile(currentLogFile: File) = GlobalScope.async(Dispatchers.IO) {
         try {

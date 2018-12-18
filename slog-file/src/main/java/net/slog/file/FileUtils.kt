@@ -3,6 +3,9 @@ package net.slog.file
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.RandomAccessFile
+import java.nio.MappedByteBuffer
+import java.nio.channels.FileChannel
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -23,4 +26,21 @@ fun File.toZipFile(targetDir: File,
         }
         stream.closeEntry()
     }
+}
+
+val blankCharByte = ' '.toByte()
+
+fun File.toMappedByteBuffer(fileMaxSize: Long): MappedByteBuffer? {
+    val memoryMappedFile = RandomAccessFile(this, "rw")
+    val channel = memoryMappedFile.channel
+
+    //reset file to put blank byte, avoid the unknown char at the end of the file
+    val mappedByteBuffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, fileMaxSize)
+    for (i in 0..(fileMaxSize - 1)) {
+        mappedByteBuffer.put(blankCharByte)
+    }
+
+    //revert to the start position
+    mappedByteBuffer.position(0)
+    return mappedByteBuffer
 }
