@@ -13,7 +13,7 @@ import java.util.*
  * 输出日志
  * Created by zhongyongsheng on 2018/12/13.
  */
-class LogFileDispatcher(/*日志目录*/val logDirectory: File,
+class LogFileDispatcher @JvmOverloads constructor(/*日志目录*/val logDirectory: File,
                         /*日志文件前缀*/val logFilePrefix: String = "logs",
                         /*日志文件后缀*/val logFileSurfix: String = ".txt",
                         /*单个日志文件大小*/val fileMaxSize: Long = 1024 * 1024L,

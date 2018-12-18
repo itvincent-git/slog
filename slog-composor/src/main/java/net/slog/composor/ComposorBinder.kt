@@ -45,6 +45,7 @@ class ComposorBinderBuilder {
      */
     fun build(): ComposorBinder {
         LogComposorHolder.logComposor = LogComposor(mLogLevel, mComposorDispatchers)
+        ComposorUtil.setComposorUncaughtExceptionHandler()
         return ComposorBinder()
     }
 }

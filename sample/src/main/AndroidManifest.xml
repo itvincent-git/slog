@@ -23,7 +23,8 @@
         </activity>
         <activity android:name=".SimpleLogActivity" />
         <activity android:name=".PerformanceActivity" />
-        <activity android:name=".ExtendActivity"></activity>
+        <activity android:name=".ExtendActivity" />
+        <activity android:name=".CrashTestActivity"></activity>
     </application>
 
 </manifest>

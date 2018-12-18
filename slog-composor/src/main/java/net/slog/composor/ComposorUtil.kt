@@ -2,6 +2,10 @@ package net.slog.composor
 
 import android.os.*
 import android.util.Log
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.runBlocking
 
 /**
  * utils for Composor
@@ -24,26 +28,57 @@ fun Any?.notPrimitiveToString(): Any? {
 }
 
 object ComposorUtil {
-    val handler: Handler by lazy {
+    val handler: SafeDispatchHandler by lazy {
         HandlerThread("LogComposor", Process.THREAD_PRIORITY_BACKGROUND)
                 .let {
                     it.start()
                     SafeDispatchHandler(it.looper)
                 }
     }
+
+    /**
+     * 处理当系统crash时，等待把日志写完再结束
+     */
+    fun setComposorUncaughtExceptionHandler() {
+        Thread.setDefaultUncaughtExceptionHandler(ComposorUncaughtExceptionHandler(Thread.getDefaultUncaughtExceptionHandler()))
+    }
 }
 
 class SafeDispatchHandler(looper: Looper) : Handler(looper) {
+    var channel: Channel<Boolean>? = null
 
     override fun dispatchMessage(msg: Message) {
         try {
             super.dispatchMessage(msg)
+            if (channel != null && !hasMessages(0)) {
+                GlobalScope.async {
+                    channel?.send(true)
+                }
+            }
         } catch (t: Throwable) {
             Log.e(TAG, "dispatchMessage error", t)
         }
     }
 
+    fun waitMessageFinish() = runBlocking {
+        channel = Channel()
+        channel?.receive()
+    }
+
     companion object {
         private const val TAG = "SafeDispatchHandler"
     }
+}
+
+/**
+ * 处理当系统crash时，等待把日志写完再结束
+ */
+class ComposorUncaughtExceptionHandler(val defaultHandler: Thread.UncaughtExceptionHandler): Thread.UncaughtExceptionHandler {
+    override fun uncaughtException(t: Thread?, e: Throwable?) {
+        Log.i("ComposorUEH", "wait for log task finishing")
+        ComposorUtil.handler.waitMessageFinish()
+        Log.i("ComposorUEH", "log task finished")
+        defaultHandler.uncaughtException(t, e)
+    }
+
 }
