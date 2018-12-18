@@ -24,16 +24,25 @@ class ComposorBinderBuilder {
     private val mComposorDispatchers: MutableList<ComposorDispatch> = mutableListOf()
     private var mLogLevel = LogLevel.Verbose
 
+    /**
+     * 添加分发处理器
+     */
     fun addDispatcher(dispatch: ComposorDispatch): ComposorBinderBuilder {
         mComposorDispatchers.add(dispatch)
         return this
     }
 
+    /**
+     * 定义当前日志级别
+     */
     fun logLevel(logLevel: LogLevel): ComposorBinderBuilder {
         mLogLevel = logLevel
         return this
     }
 
+    /**
+     * 生成ComposorBinder
+     */
     fun build(): ComposorBinder {
         LogComposorHolder.logComposor = LogComposor(mLogLevel, mComposorDispatchers)
         return ComposorBinder()
