@@ -21,6 +21,7 @@ An Android log tools, with logcat and file log used mmap.
 
 [ ] 没有写文件权限的保护
 
+[ ] 自动清理超时7天的日志，避免日志过多
 
 ### 性能测试
 
