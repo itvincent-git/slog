@@ -24,7 +24,8 @@
         <activity android:name=".SimpleLogActivity" />
         <activity android:name=".PerformanceActivity" />
         <activity android:name=".ExtendActivity" />
-        <activity android:name=".CrashTestActivity"></activity>
+        <activity android:name=".CrashTestActivity" />
+        <activity android:name=".LogManagerActivity"></activity>
     </application>
 
 </manifest>

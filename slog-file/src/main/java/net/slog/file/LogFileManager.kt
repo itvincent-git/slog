@@ -11,19 +11,30 @@ import java.io.FilenameFilter
  * 日志文件管理
  * Created by zhongyongsheng on 2018/12/17.
  */
-class LogFileManager(/*日志目录*/val logDirectory: File,
-        /*日志文件前缀*/val logFilePrefix: String = "logs",
-        /*日志文件后缀*/val logFileSurfix: String = ".txt") {
+object LogFileManager {
+    const val TAG = "LogFileManager"
+    val log = SLoggerFactory.getLogger(TAG)
 
+    private lateinit var logDirectory: File
+    private lateinit var logFilePrefix: String
+    private lateinit var logFileSurfix: String
+    private lateinit var currentLogFile: File
+
+    internal fun initialize(fileDispatcher: LogFileDispatcher) {
+        logDirectory = fileDispatcher.logDirectory
+        logFilePrefix = fileDispatcher.logFilePrefix
+        logFileSurfix = fileDispatcher.logFileSurfix
+        currentLogFile = fileDispatcher.logFile
+    }
     /**
      * 除当前的日志文件外，压缩logDirectory目录下.txt文件为.zip
      * @param currentLogFile 排除这个文件不压缩
      */
-    fun compressBakLogFile(currentLogFile: File) = GlobalScope.async(Dispatchers.IO) {
+    fun compressBakLogFile(excludeFile: File) = GlobalScope.async(Dispatchers.IO) {
         try {
             if (!logDirectory.exists()) return@async
             logDirectory.listFiles(FilenameFilter { dir, name ->
-                return@FilenameFilter name.startsWith(logFilePrefix) && name.endsWith(logFileSurfix) && currentLogFile.name != name
+                return@FilenameFilter name.startsWith(logFilePrefix) && name.endsWith(logFileSurfix) && excludeFile.name != name
             }).forEach {
                 it.toZipFile(logDirectory)
                 it.delete()
@@ -33,11 +44,25 @@ class LogFileManager(/*日志目录*/val logDirectory: File,
         }
     }
 
-    companion object {
-        val TAG = "LogFileManager"
-        val log = SLoggerFactory.getLogger(TAG)
+    /**
+     * 返回全部的日志文件，包括txt/zip，按时间顺序排序
+     */
+    fun getLogFileList(): List<File> {
+        try {
+            if (!logDirectory.exists()) return listOf(currentLogFile)
+            return logDirectory.listFiles(FilenameFilter { dir, name ->
+                return@FilenameFilter name.startsWith(logFilePrefix) && (name.endsWith(logFileSurfix) || name.endsWith(".zip"))
+            }).sortedWith(Comparator<File>() { lhs: File, rhs: File ->
+                    when {
+                        lhs.lastModified() < rhs.lastModified() -> -1
+                        lhs.lastModified() > rhs.lastModified() -> 1
+                        else -> 0
+                    }
+            })
+        } catch (t: Throwable) {
+            log.error("getLogFileList error", t)
+            return listOf(currentLogFile)
+        }
     }
-
-
 
 }

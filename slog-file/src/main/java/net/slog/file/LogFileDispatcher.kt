@@ -20,7 +20,10 @@ class LogFileDispatcher @JvmOverloads constructor(/*日志目录*/val logDirecto
                         /*指定达到这个级别及以上的日志才输出到日志*/val logFileLevel: LogLevel = LogLevel.Info): ComposorDispatch {
     val mFormat = "yyyy_MM_dd_hh_mm_ss"
     val dateFormat = SimpleDateFormat(mFormat)
-    val mLogFileManager = LogFileManager(logDirectory, logFilePrefix)
+
+    init {
+        LogFileManager.initialize(this)
+    }
 
     private var currentMappedByteBuffer: MappedByteBuffer? = null
 
@@ -28,14 +31,14 @@ class LogFileDispatcher @JvmOverloads constructor(/*日志目录*/val logDirecto
         get() {
             if (currentMappedByteBuffer == null) {
                 currentMappedByteBuffer = logFile.toMappedByteBuffer(fileMaxSize)
-                mLogFileManager.compressBakLogFile(logFile)
+                LogFileManager.compressBakLogFile(logFile)
             }
             return currentMappedByteBuffer!!
         }
 
     private var currentLogFile: File? = null
 
-    protected val logFile: File
+    val logFile: File
         get() {
             if (currentLogFile == null)
                 currentLogFile = getNewLogFile()
@@ -77,7 +80,7 @@ class LogFileDispatcher @JvmOverloads constructor(/*日志目录*/val logDirecto
     fun createNewMappedByteBuffer() {
         currentLogFile = getNewLogFile()
         currentMappedByteBuffer = logFile.toMappedByteBuffer(fileMaxSize)
-        mLogFileManager.compressBakLogFile(logFile)
+        LogFileManager.compressBakLogFile(logFile)
     }
 
     init {
