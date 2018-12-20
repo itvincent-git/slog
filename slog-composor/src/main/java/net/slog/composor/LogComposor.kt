@@ -52,7 +52,7 @@ class LogComposor(val mLogLevel: LogLevel,
         }
     }
 
-    protected fun dispatchMsg(tag: String, logLevel: LogLevel, msg: String) {
+    internal fun dispatchMsg(tag: String, logLevel: LogLevel, msg: String) {
         mComposorDispatchers.forEach {
             try {
                 it.invoke(tag, logLevel, msg)

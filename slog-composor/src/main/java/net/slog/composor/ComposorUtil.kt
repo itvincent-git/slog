@@ -74,10 +74,13 @@ class SafeDispatchHandler(looper: Looper) : Handler(looper) {
  * 处理当系统crash时，等待把日志写完再结束
  */
 class ComposorUncaughtExceptionHandler(val defaultHandler: Thread.UncaughtExceptionHandler): Thread.UncaughtExceptionHandler {
+    val TAG = "ComposorUEH"
+
     override fun uncaughtException(t: Thread?, e: Throwable?) {
-        Log.i("ComposorUEH", "wait for log task finishing")
+        LogComposorHolder.logComposor.dispatchMsg(TAG, LogLevel.Error, "Crash happen > uncaughtException > ${Log.getStackTraceString(e)}")
+        //Log.d(TAG, "wait for log task finishing")//调试时用
         ComposorUtil.handler.waitMessageFinish()
-        Log.i("ComposorUEH", "log task finished")
+        //Log.d(TAG, "log task finished")//调试时用
         defaultHandler.uncaughtException(t, e)
     }
 
