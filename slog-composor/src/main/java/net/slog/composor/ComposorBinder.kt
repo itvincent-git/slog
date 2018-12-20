@@ -33,7 +33,7 @@ class ComposorBinderBuilder {
     }
 
     /**
-     * 定义当前日志级别
+     * 定义输出日志级别，当大于等于这个级别的日志才会输出
      */
     fun logLevel(logLevel: LogLevel): ComposorBinderBuilder {
         mLogLevel = logLevel

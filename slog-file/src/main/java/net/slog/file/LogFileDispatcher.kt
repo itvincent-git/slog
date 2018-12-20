@@ -10,14 +10,20 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
- * 输出日志
+ * 输出日志到文件
  * Created by zhongyongsheng on 2018/12/13.
+ *
+ * @param logDirectory 日志目录
+ * @param logFilePrefix 日志文件前缀
+ * @param logFileSurfix 日志文件后缀
+ * @param fileMaxSize 单个日志文件大小
+ * @param logFileLevel 指定达到这个级别及以上的日志才输出到文件，先判定LogComposor的logLevel，再判定该字段
  */
-class LogFileDispatcher @JvmOverloads constructor(/*日志目录*/val logDirectory: File,
-                        /*日志文件前缀*/val logFilePrefix: String = "logs",
-                        /*日志文件后缀*/val logFileSurfix: String = ".txt",
-                        /*单个日志文件大小*/val fileMaxSize: Long = 1024 * 1024L,
-                        /*指定达到这个级别及以上的日志才输出到日志*/val logFileLevel: LogLevel = LogLevel.Info): ComposorDispatch {
+class LogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
+                        val logFilePrefix: String = "logs",
+                        val logFileSurfix: String = ".txt",
+                        val fileMaxSize: Long = 1024 * 1024L,
+                        val logFileLevel: LogLevel = LogLevel.Debug): ComposorDispatch {
     val mFormat = "yyyy_MM_dd_hh_mm_ss"
     val dateFormat = SimpleDateFormat(mFormat)
 

@@ -22,7 +22,7 @@ class LogComposor(val mLogLevel: LogLevel,
 
 
     internal fun processLog(tag: String, level:LogLevel, msg: String?, throwable: Throwable?, vararg objs: Any?) {
-        if (msg != null) {
+        if (msg != null && level >= mLogLevel) {
             val currentTime = System.currentTimeMillis()
             if (objs.isNotEmpty()) {
                 val stringiflyArray = toStringiflyArray(objs)
