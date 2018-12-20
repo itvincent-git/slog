@@ -8,10 +8,17 @@ import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import kotlin.math.abs
 
 /**
  * 文件操作工具
  * Created by zhongyongsheng on 2018/12/17.
+ */
+
+const val blankCharByte = ' '.toByte()
+
+/**
+ * 压缩成zip文件
  */
 @Throws(IOException::class)
 fun File.toZipFile(targetDir: File,
@@ -28,8 +35,9 @@ fun File.toZipFile(targetDir: File,
     }
 }
 
-val blankCharByte = ' '.toByte()
-
+/**
+ * 转成MappedByteBuffer
+ */
 fun File.toMappedByteBuffer(fileMaxSize: Long): MappedByteBuffer? {
     val memoryMappedFile = RandomAccessFile(this, "rw")
     val channel = memoryMappedFile.channel
@@ -43,4 +51,84 @@ fun File.toMappedByteBuffer(fileMaxSize: Long): MappedByteBuffer? {
     //revert to the start position
     mappedByteBuffer.position(0)
     return mappedByteBuffer
+}
+
+/**
+ * 按时间旧到新排序
+ */
+fun Array<File>.sortByLastModified(descending: Boolean = false): List<File> {
+    return sortedWith(Comparator { lhs: File, rhs: File ->
+        if (descending) {
+            when {
+                lhs.lastModified() < rhs.lastModified() -> 1
+                lhs.lastModified() > rhs.lastModified() -> -1
+                else -> 0
+            }
+        } else {
+            when {
+                lhs.lastModified() < rhs.lastModified() -> -1
+                lhs.lastModified() > rhs.lastModified() -> 1
+                else -> 0
+            }
+        }
+    })
+}
+
+/**
+ * 按最靠近timePoint的文件LastModified时间为先进行排序
+ */
+fun Array<File>.sortByLastModifiedTimePoint(timePoint: Long): List<File> {
+    return sortedWith(Comparator { lhs: File, rhs: File ->
+        when {
+            abs(lhs.lastModified() - timePoint) < abs(rhs.lastModified() - timePoint) -> -1
+            abs(lhs.lastModified() - timePoint) > abs(rhs.lastModified() - timePoint) -> 1
+            else -> 0
+        }
+    })
+}
+
+/**
+ * 按addSize大小计算，返回累计小于maxSize内的文件
+ */
+fun Collection<File>.takeByFileSize(maxSize: Long, predicate: (File, Long) -> Boolean, addSize: (File) -> Long): List<File> {
+    val list = mutableListOf<File>()
+    var counterSize = 0L
+    for (file in this) {
+        if (predicate(file, counterSize)) {
+            list += file
+            counterSize += addSize(file)
+        }
+    }
+    return list
+}
+
+/**
+ * 全部文件压缩成zip文件
+ */
+@Throws(IOException::class)
+fun Collection<File>.toZipFile(targetFile: File) {
+    if (targetFile.exists()) {
+        targetFile.delete()
+    } else {
+        targetFile.parentFile.mkdirs()
+        targetFile.createNewFile()
+    }
+    ZipOutputStream(FileOutputStream(targetFile)).use { stream ->
+
+        for (file in this) {
+            val zipEntry = ZipEntry(file.name)
+            stream.putNextEntry(zipEntry)
+            file.forEachBlock { bytes: ByteArray, i: Int ->
+                stream.write(bytes)
+            }
+        }
+        stream.closeEntry()
+    }
+}
+
+/**
+ * 转换成MB的大小
+ */
+fun Int.toMB(): Long {
+    return this * 1024 * 1024L
 }

@@ -5,6 +5,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
+ * 目标：高性能、轻量化、接口化
+ *
  * 日志组装，包括各种扩展信息组装成字符串后，通过ComposorDispatch分发到logcat、logfile
  * Created by zhongyongsheng on 2018/12/12.
  */

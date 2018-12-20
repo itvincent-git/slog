@@ -1,11 +1,14 @@
 package net.slog.file
 
+import android.support.annotation.WorkerThread
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import net.slog.SLoggerFactory
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FilenameFilter
+import java.io.IOException
 
 /**
  * 日志文件管理
@@ -13,7 +16,7 @@ import java.io.FilenameFilter
  */
 object LogFileManager {
     const val TAG = "LogFileManager"
-    val log = SLoggerFactory.getLogger(TAG)
+    const val AVERAGE_LOG_ZIP_COMPRESSION_RATIO = 0.15f//ZIP方式在压log的平均压缩率，用于收集日志时，估算日志压缩后大小
 
     private lateinit var logDirectory: File
     private lateinit var logFilePrefix: String
@@ -40,29 +43,52 @@ object LogFileManager {
                 it.delete()
             }
         } catch (t: Throwable) {
-            log.error("compressBakLogFile error", t)
+            Log.e(TAG, "compressBakLogFile error", t)
         }
     }
 
     /**
-     * 返回全部的日志文件，包括txt/zip，按时间顺序排序
+     * 返回全部的日志文件，包括txt/zip，按时间倒序排序
      */
+    @WorkerThread
     fun getLogFileList(): List<File> {
         try {
             if (!logDirectory.exists()) return listOf(currentLogFile)
             return logDirectory.listFiles(FilenameFilter { dir, name ->
                 return@FilenameFilter name.startsWith(logFilePrefix) && (name.endsWith(logFileSurfix) || name.endsWith(".zip"))
-            }).sortedWith(Comparator<File>() { lhs: File, rhs: File ->
-                    when {
-                        lhs.lastModified() < rhs.lastModified() -> -1
-                        lhs.lastModified() > rhs.lastModified() -> 1
-                        else -> 0
-                    }
-            })
+            }).sortByLastModified(true)
         } catch (t: Throwable) {
-            log.error("getLogFileList error", t)
             return listOf(currentLogFile)
         }
     }
 
+    /**
+     * 压缩日志文件
+     * @param externalFiles 额外压缩的文件
+     * @param maxLogSize 最大压缩包大小
+     * @param timePoint 按照最接近这个时间点的日志来收集
+     * @param targetZipFile zip文件路径
+     */
+    @WorkerThread
+    @Throws(IOException::class)
+    suspend fun compressLogFile(externalFiles: List<File>, maxLogSize: Long, timePoint: Long, targetZipFile: File): List<File> {
+        return withContext(Dispatchers.IO) {
+            if (!logDirectory.exists()) return@withContext listOf<File>()
+
+            return@withContext logDirectory.listFiles(FilenameFilter { dir, name ->
+                return@FilenameFilter name.startsWith(logFilePrefix) && (name.endsWith(logFileSurfix) || name.endsWith(".zip"))
+            })//取日志文件
+            .sortByLastModifiedTimePoint(timePoint)//按靠近的时间点排序
+            .takeByFileSize(maxLogSize, { file, currentSize -> //按文件上限取
+                    file.length() * AVERAGE_LOG_ZIP_COMPRESSION_RATIO + currentSize < maxLogSize
+                }, {
+                    (it.length() * AVERAGE_LOG_ZIP_COMPRESSION_RATIO).toLong()
+                })
+            .take(3)
+            .toMutableList().apply {
+                addAll(externalFiles)
+                        toZipFile(targetZipFile)
+            }
+        }
+    }
 }
