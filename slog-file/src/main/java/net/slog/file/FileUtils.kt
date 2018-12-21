@@ -16,6 +16,7 @@ import kotlin.math.abs
  */
 
 const val blankCharByte = ' '.toByte()
+const val AVERAGE_LOG_ZIP_COMPRESSION_RATIO = 0.15f//ZIP方式在压log的平均压缩率，用于收集日志时，估算日志压缩后大小
 
 /**
  * 压缩成zip文件
@@ -51,6 +52,14 @@ fun File.toMappedByteBuffer(fileMaxSize: Long): MappedByteBuffer? {
     //revert to the start position
     mappedByteBuffer.position(0)
     return mappedByteBuffer
+}
+
+/**
+ * 预测压缩后的文件大小
+ */
+fun File.predictCompressedSize(): Long {
+    if (name.endsWith(".zip")) return length()
+    return (length() * AVERAGE_LOG_ZIP_COMPRESSION_RATIO).toLong()
 }
 
 /**

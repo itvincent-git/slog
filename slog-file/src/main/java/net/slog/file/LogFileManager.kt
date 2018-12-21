@@ -16,7 +16,6 @@ import java.io.IOException
  */
 object LogFileManager {
     const val TAG = "LogFileManager"
-    const val AVERAGE_LOG_ZIP_COMPRESSION_RATIO = 0.15f//ZIP方式在压log的平均压缩率，用于收集日志时，估算日志压缩后大小
 
     private lateinit var logDirectory: File
     private lateinit var logFilePrefix: String
@@ -80,9 +79,9 @@ object LogFileManager {
             })//取日志文件
             .sortByLastModifiedTimePoint(timePoint)//按靠近的时间点排序
             .takeByFileSize(maxLogSize, { file, currentSize -> //按文件上限取
-                    file.length() * AVERAGE_LOG_ZIP_COMPRESSION_RATIO + currentSize < maxLogSize
+                    file.predictCompressedSize() + currentSize < maxLogSize
                 }, {
-                    (it.length() * AVERAGE_LOG_ZIP_COMPRESSION_RATIO).toLong()
+                    it.predictCompressedSize()
                 })
             .toMutableList().apply {
                 addAll(externalFiles)
