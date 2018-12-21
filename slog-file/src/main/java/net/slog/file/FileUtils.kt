@@ -19,6 +19,11 @@ const val blankCharByte = ' '.toByte()
 const val AVERAGE_LOG_ZIP_COMPRESSION_RATIO = 0.15f//ZIP方式在压log的平均压缩率，用于收集日志时，估算日志压缩后大小
 
 /**
+ * 时间范围，单位毫秒
+ */
+data class TimeRange(val startTime: Long, val endTime: Long = 0L)
+
+/**
  * 压缩成zip文件
  */
 @Throws(IOException::class)
@@ -94,6 +99,16 @@ fun Array<File>.sortByLastModifiedTimePoint(timePoint: Long): List<File> {
             else -> 0
         }
     })
+}
+
+/**
+ * 按最近修改时间在timeRange范围内则被选中返回
+ */
+fun Collection<File>.filterByLastModifiedRange(timeRange: TimeRange): List<File> {
+    return filter {
+        val l = it.lastModified()
+        l >= timeRange.startTime && l <= timeRange.endTime
+    }
 }
 
 /**

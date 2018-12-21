@@ -65,19 +65,26 @@ object LogFileManager {
      * 压缩日志文件
      * @param externalFiles 额外压缩的文件
      * @param maxLogSize 最大压缩包大小
-     * @param timePoint 按照最接近这个时间点的日志来收集
+     * @param timeRange 如果设置了开始和结束时间，则按时间范围来找文件，否则按照最接近这个timeRange.startTime时间点的日志来收集
      * @param targetZipFile zip文件路径
      */
     @WorkerThread
     @Throws(IOException::class)
-    suspend fun compressLogFile(externalFiles: List<File>, maxLogSize: Long, timePoint: Long, targetZipFile: File): List<File> {
+    suspend fun compressLogFile(externalFiles: List<File>, maxLogSize: Long, timeRange: TimeRange, targetZipFile: File): List<File> {
         return withContext(Dispatchers.IO) {
             if (!logDirectory.exists()) return@withContext listOf<File>()
 
             return@withContext logDirectory.listFiles(FilenameFilter { dir, name ->
                 return@FilenameFilter name.startsWith(logFilePrefix) && (name.endsWith(logFileSurfix) || name.endsWith(".zip"))
             })//取日志文件
-            .sortByLastModifiedTimePoint(timePoint)//按靠近的时间点排序
+            .run {
+                if (timeRange.endTime == 0L) {
+                    sortByLastModifiedTimePoint(timeRange.startTime)//按靠近的时间点排序
+                } else {
+                    sortByLastModified(true)
+                    .filterByLastModifiedRange(timeRange)//把这段时间范围内的日志过滤出来
+                }
+            }
             .takeByFileSize(maxLogSize, { file, currentSize -> //按文件上限取
                     file.predictCompressedSize() + currentSize < maxLogSize
                 }, {
@@ -89,4 +96,5 @@ object LogFileManager {
             }
         }
     }
+
 }

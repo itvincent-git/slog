@@ -9,6 +9,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import net.slog.SLoggerFactory
 import net.slog.file.LogFileManager
+import net.slog.file.TimeRange
 import net.slog.file.toMB
 import java.io.File
 import kotlin.coroutines.CoroutineContext
@@ -34,7 +35,17 @@ class LogManagerActivity : AppCompatActivity(), CoroutineScope {
             launch {
                 LogFileManager.compressLogFile(emptyList(),
                         200 * 1024L,
-                        System.currentTimeMillis(),
+                        TimeRange(System.currentTimeMillis()),
+                        File("/sdcard/slog/temp", "compress_log.zip"))
+                        .also { log.debug("compressLogFile list: $it") }
+            }
+        }
+
+        compress_log_file_by_range_btn.setOnClickListener {
+            launch {
+                LogFileManager.compressLogFile(emptyList(),
+                        200 * 1024L,
+                        TimeRange(System.currentTimeMillis() - 24 * 60 * 60 * 1000, System.currentTimeMillis() - 30 * 60 * 1000),
                         File("/sdcard/slog/temp", "compress_log.zip"))
                         .also { log.debug("compressLogFile list: $it") }
             }
