@@ -84,7 +84,6 @@ object LogFileManager {
                 }, {
                     (it.length() * AVERAGE_LOG_ZIP_COMPRESSION_RATIO).toLong()
                 })
-            .take(3)
             .toMutableList().apply {
                 addAll(externalFiles)
                         toZipFile(targetZipFile)

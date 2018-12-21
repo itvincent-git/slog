@@ -113,16 +113,18 @@ fun Collection<File>.toZipFile(targetFile: File) {
         targetFile.parentFile.mkdirs()
         targetFile.createNewFile()
     }
-    ZipOutputStream(FileOutputStream(targetFile)).use { stream ->
+    FileOutputStream(targetFile).use {
+        ZipOutputStream(it).use { stream ->
 
-        for (file in this) {
-            val zipEntry = ZipEntry(file.name)
-            stream.putNextEntry(zipEntry)
-            file.forEachBlock { bytes: ByteArray, i: Int ->
-                stream.write(bytes)
+            for (file in this) {
+                val zipEntry = ZipEntry(file.name)
+                stream.putNextEntry(zipEntry)
+                file.forEachBlock { bytes: ByteArray, i: Int ->
+                    stream.write(bytes)
+                }
             }
+            stream.closeEntry()
         }
-        stream.closeEntry()
     }
 }
 

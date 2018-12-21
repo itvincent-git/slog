@@ -33,7 +33,7 @@ class LogManagerActivity : AppCompatActivity(), CoroutineScope {
         compress_log_file_btn.setOnClickListener {
             launch {
                 LogFileManager.compressLogFile(emptyList(),
-                        /*3.toMB()*/500 * 1024L,
+                        200 * 1024L,
                         System.currentTimeMillis(),
                         File("/sdcard/slog/temp", "compress_log.zip"))
                         .also { log.debug("compressLogFile list: $it") }
