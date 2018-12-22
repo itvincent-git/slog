@@ -9,6 +9,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FilenameFilter
 import java.io.IOException
+import java.text.SimpleDateFormat
 
 /**
  * 日志文件管理
@@ -21,12 +22,14 @@ object LogFileManager {
     private lateinit var logFilePrefix: String
     private lateinit var logFileSurfix: String
     private lateinit var currentLogFile: File
+    private lateinit var format: String
 
     internal fun initialize(fileDispatcher: LogFileDispatcher) {
         logDirectory = fileDispatcher.logDirectory
         logFilePrefix = fileDispatcher.logFilePrefix
         logFileSurfix = fileDispatcher.logFileSurfix
         currentLogFile = fileDispatcher.logFile
+        format = fileDispatcher.mFormat
     }
     /**
      * 除当前的日志文件外，压缩logDirectory目录下.txt文件为.zip
@@ -55,7 +58,7 @@ object LogFileManager {
             if (!logDirectory.exists()) return listOf(currentLogFile)
             return logDirectory.listFiles(FilenameFilter { dir, name ->
                 return@FilenameFilter name.startsWith(logFilePrefix) && (name.endsWith(logFileSurfix) || name.endsWith(".zip"))
-            }).sortByLastModified(true)
+            }).sortByFileNameDate(logFilePrefix, SimpleDateFormat(format), true)
         } catch (t: Throwable) {
             return listOf(currentLogFile)
         }
@@ -79,10 +82,11 @@ object LogFileManager {
             })//取日志文件
             .run {
                 if (timeRange.endTime == 0L) {
-                    sortByLastModifiedTimePoint(timeRange.startTime)//按靠近的时间点排序
+                    sortByFileNameDateTimePoint(timeRange.startTime, logFilePrefix, SimpleDateFormat(format))//按靠近的时间点排序
                 } else {
-                    sortByLastModified(true)
-                    .filterByLastModifiedRange(timeRange)//把这段时间范围内的日志过滤出来
+                    val dateFormat = SimpleDateFormat(format)
+                    sortByFileNameDate(logFilePrefix, dateFormat, true)
+                    .filterByFileNameDateRange(timeRange, logFilePrefix, dateFormat)//把这段时间范围内的日志过滤出来
                 }
             }
             .takeByFileSize(maxLogSize, { file, currentSize -> //按文件上限取

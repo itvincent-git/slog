@@ -20,7 +20,7 @@ import java.util.*
  * @param logFileLevel 指定达到这个级别及以上的日志才输出到文件，先判定LogComposor的logLevel，再判定该字段
  */
 class LogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
-                        val logFilePrefix: String = "logs",
+                        val logFilePrefix: String = "logs_",
                         val logFileSurfix: String = ".txt",
                         val fileMaxSize: Long = 1024 * 1024L,
                         val logFileLevel: LogLevel = LogLevel.Debug): ComposorDispatch {
@@ -52,7 +52,7 @@ class LogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
         }
 
     protected fun getNewLogFile(): File {
-        return File(logDirectory, "${logFilePrefix}_${dateFormat.format(Date())}$logFileSurfix")
+        return File(logDirectory, "${logFilePrefix}${dateFormat.format(Date())}$logFileSurfix")
     }
 
     /**

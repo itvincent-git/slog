@@ -6,6 +6,8 @@ import java.io.IOException
 import java.io.RandomAccessFile
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
+import java.text.DateFormat
+import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.math.abs
@@ -68,6 +70,15 @@ fun File.predictCompressedSize(): Long {
 }
 
 /**
+ * 返回文件名上的时间，不包含后缀名
+ * @param prefix 排除这个前缀，不匹配时间格式
+ */
+fun File.fileNameToDate(prefix: String, dateFormat: DateFormat): Date {
+    val dateString = nameWithoutExtension.substringAfter(prefix)
+    return dateFormat.parse(dateString)
+}
+
+/**
  * 按时间旧到新排序
  */
 fun Array<File>.sortByLastModified(descending: Boolean = false): List<File> {
@@ -89,6 +100,27 @@ fun Array<File>.sortByLastModified(descending: Boolean = false): List<File> {
 }
 
 /**
+ * 按文件名的日期来排期
+ */
+fun Array<File>.sortByFileNameDate(prefix: String, dateFormat: DateFormat, descending: Boolean = false): List<File> {
+    return sortedWith(Comparator { lhs: File, rhs: File ->
+        if (descending) {
+            when {
+                lhs.fileNameToDate(prefix, dateFormat) < rhs.fileNameToDate(prefix, dateFormat) -> 1
+                lhs.fileNameToDate(prefix, dateFormat) > rhs.fileNameToDate(prefix, dateFormat) -> -1
+                else -> 0
+            }
+        } else {
+            when {
+                lhs.fileNameToDate(prefix, dateFormat) < rhs.fileNameToDate(prefix, dateFormat) -> -1
+                lhs.fileNameToDate(prefix, dateFormat) > rhs.fileNameToDate(prefix, dateFormat) -> 1
+                else -> 0
+            }
+        }
+    })
+}
+
+/**
  * 按最靠近timePoint的文件LastModified时间为先进行排序
  */
 fun Array<File>.sortByLastModifiedTimePoint(timePoint: Long): List<File> {
@@ -102,11 +134,35 @@ fun Array<File>.sortByLastModifiedTimePoint(timePoint: Long): List<File> {
 }
 
 /**
+ * 按最靠近timePoint的文件FileNameDate时间为先进行排序
+ */
+fun Array<File>.sortByFileNameDateTimePoint(timePoint: Long, prefix: String, dateFormat: DateFormat): List<File> {
+    return sortedWith(Comparator { lhs: File, rhs: File ->
+        when {
+            abs(lhs.fileNameToDate(prefix, dateFormat).time - timePoint) < abs(rhs.fileNameToDate(prefix, dateFormat).time - timePoint) -> -1
+            abs(lhs.fileNameToDate(prefix, dateFormat).time - timePoint) > abs(rhs.fileNameToDate(prefix, dateFormat).time - timePoint) -> 1
+            else -> 0
+        }
+    })
+}
+
+
+/**
  * 按最近修改时间在timeRange范围内则被选中返回
  */
 fun Collection<File>.filterByLastModifiedRange(timeRange: TimeRange): List<File> {
     return filter {
         val l = it.lastModified()
+        l >= timeRange.startTime && l <= timeRange.endTime
+    }
+}
+
+/**
+ * 按FileNameDate在timeRange范围内则被选中返回
+ */
+fun Collection<File>.filterByFileNameDateRange(timeRange: TimeRange, prefix: String, dateFormat: DateFormat): List<File> {
+    return filter {
+        val l = it.fileNameToDate(prefix, dateFormat).time
         l >= timeRange.startTime && l <= timeRange.endTime
     }
 }

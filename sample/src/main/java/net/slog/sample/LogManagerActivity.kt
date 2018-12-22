@@ -13,6 +13,7 @@ import net.slog.file.TimeRange
 import net.slog.file.toMB
 import java.io.File
 import kotlin.coroutines.CoroutineContext
+import kotlin.system.measureTimeMillis
 
 class LogManagerActivity : AppCompatActivity(), CoroutineScope {
     val job = Job()
@@ -27,7 +28,12 @@ class LogManagerActivity : AppCompatActivity(), CoroutineScope {
 
         get_log_file_list_btn.setOnClickListener {
             launch {
-                log.debug("get latest 3 log file: ${LogFileManager.getLogFileList().take(3)}")
+                measureTimeMillis {
+                    log.debug("get latest 3 log file: ${LogFileManager.getLogFileList().take(3)}")
+                }.also {
+                    log.debug("time used $it ms")
+                }
+
             }
         }
 
@@ -45,7 +51,7 @@ class LogManagerActivity : AppCompatActivity(), CoroutineScope {
             launch {
                 LogFileManager.compressLogFile(emptyList(),
                         200 * 1024L,
-                        TimeRange(System.currentTimeMillis() - 24 * 60 * 60 * 1000, System.currentTimeMillis() - 30 * 60 * 1000),
+                        TimeRange(System.currentTimeMillis() - 24 * 60 * 60 * 1000, System.currentTimeMillis() - 3 * 60 * 60 * 1000),
                         File("/sdcard/slog/temp", "compress_log.zip"))
                         .also { log.debug("compressLogFile list: $it") }
             }
