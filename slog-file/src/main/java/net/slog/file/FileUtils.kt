@@ -7,6 +7,7 @@ import java.io.RandomAccessFile
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
 import java.text.DateFormat
+import java.text.ParseException
 import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -19,6 +20,7 @@ import kotlin.math.abs
 
 const val blankCharByte = ' '.toByte()
 const val AVERAGE_LOG_ZIP_COMPRESSION_RATIO = 0.15f//ZIP方式在压log的平均压缩率，用于收集日志时，估算日志压缩后大小
+val dateOfFirstTime = Date(0)
 
 /**
  * 时间范围，单位毫秒
@@ -75,7 +77,11 @@ fun File.predictCompressedSize(): Long {
  */
 fun File.fileNameToDate(prefix: String, dateFormat: DateFormat): Date {
     val dateString = nameWithoutExtension.substringAfter(prefix)
-    return dateFormat.parse(dateString)
+    return try {
+        dateFormat.parse(dateString)
+    } catch (e: ParseException) {
+        dateOfFirstTime
+    }
 }
 
 /**
