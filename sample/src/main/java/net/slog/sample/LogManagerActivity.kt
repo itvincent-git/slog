@@ -51,7 +51,7 @@ class LogManagerActivity : AppCompatActivity(), CoroutineScope {
             launch {
                 LogFileManager.compressLogFile(emptyList(),
                         200 * 1024L,
-                        TimeRange(System.currentTimeMillis() - 24 * 60 * 60 * 1000, System.currentTimeMillis() - 3 * 60 * 60 * 1000),
+                        TimeRange(System.currentTimeMillis() - 24 * 60 * 60 * 1000, System.currentTimeMillis() - 15 * 60 * 1000),
                         File("/sdcard/slog/temp", "compress_log.zip"))
                         .also { log.debug("compressLogFile list: $it") }
             }

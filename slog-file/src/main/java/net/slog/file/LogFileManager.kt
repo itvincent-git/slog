@@ -29,7 +29,7 @@ object LogFileManager {
         logFilePrefix = fileDispatcher.logFilePrefix
         logFileSurfix = fileDispatcher.logFileSurfix
         currentLogFile = fileDispatcher.logFile
-        format = fileDispatcher.mFormat
+        format = fileDispatcher.format
     }
     /**
      * 除当前的日志文件外，压缩logDirectory目录下.txt文件为.zip

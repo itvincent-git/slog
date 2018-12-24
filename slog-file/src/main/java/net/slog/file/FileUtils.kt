@@ -177,6 +177,7 @@ fun Collection<File>.filterByFileNameDateRange(timeRange: TimeRange, prefix: Str
  * 按addSize大小计算，返回累计小于maxSize内的文件
  */
 fun Collection<File>.takeByFileSize(maxSize: Long, predicate: (File, Long) -> Boolean, addSize: (File) -> Long): List<File> {
+    if (isEmpty()) return emptyList()
     val list = mutableListOf<File>()
     var counterSize = 0L
     for (file in this) {
@@ -193,6 +194,7 @@ fun Collection<File>.takeByFileSize(maxSize: Long, predicate: (File, Long) -> Bo
  */
 @Throws(IOException::class)
 fun Collection<File>.toZipFile(targetFile: File) {
+    if (isEmpty()) return
     if (targetFile.exists()) {
         targetFile.delete()
     } else {

@@ -24,8 +24,8 @@ class LogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
                         val logFileSurfix: String = ".txt",
                         val fileMaxSize: Long = 1024 * 1024L,
                         val logFileLevel: LogLevel = LogLevel.Debug): ComposorDispatch {
-    val mFormat = "yyyy_MM_dd_HH_mm_ss"
-    val dateFormat = SimpleDateFormat(mFormat)
+    val format = "yyyy_MM_dd_HH_mm_ss"
+    val dateFormat = SimpleDateFormat(format)
 
     init {
         LogFileManager.initialize(this)
