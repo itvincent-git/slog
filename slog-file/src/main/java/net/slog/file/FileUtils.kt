@@ -184,6 +184,8 @@ fun Collection<File>.takeByFileSize(maxSize: Long, predicate: (File, Long) -> Bo
         if (predicate(file, counterSize)) {
             list += file
             counterSize += addSize(file)
+        } else {
+            break
         }
     }
     return list
@@ -221,4 +223,15 @@ fun Collection<File>.toZipFile(targetFile: File) {
  */
 fun Int.toMB(): Long {
     return this * 1024 * 1024L
+}
+
+/**
+ * 删除文件，如果有异常返回false
+ */
+fun File.deleteWithoutException(): Boolean {
+    try {
+        return delete()
+    } catch (t: Throwable) {
+        return false
+    }
 }
