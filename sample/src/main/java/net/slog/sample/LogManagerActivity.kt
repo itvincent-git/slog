@@ -10,8 +10,8 @@ import kotlinx.coroutines.launch
 import net.slog.SLoggerFactory
 import net.slog.file.LogFileManager
 import net.slog.file.TimeRange
-import net.slog.file.toMB
 import java.io.File
+import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 import kotlin.system.measureTimeMillis
 
@@ -54,6 +54,16 @@ class LogManagerActivity : AppCompatActivity(), CoroutineScope {
                         TimeRange(System.currentTimeMillis() - 24 * 60 * 60 * 1000, System.currentTimeMillis() - 15 * 60 * 1000),
                         File("/sdcard/slog/temp", "compress_log.zip"))
                         .also { log.debug("compressLogFile list: $it") }
+            }
+        }
+
+        get_before_n_day_btn.setOnClickListener {
+            launch {
+                // get log between 3 - 7 days ago
+                LogFileManager.getLogFileListByTimeRange(
+                        TimeRange(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(100), System.currentTimeMillis() - TimeUnit.DAYS.toMillis(7))
+                )
+                .also { log.debug("getLogFileListByTimeRange list: $it") }
             }
         }
     }

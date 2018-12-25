@@ -65,6 +65,31 @@ object LogFileManager {
     }
 
     /**
+     * 返回一个TimeRange条件内的日志
+     * @param timeRange 如果设置了开始和结束时间，则按时间范围来找文件，否则按照最接近这个timeRange.startTime时间点的日志来收集
+     */
+    @WorkerThread
+    fun getLogFileListByTimeRange(timeRange: TimeRange): List<File> {
+        try {
+            if (!logDirectory.exists()) return listOf(currentLogFile)
+            return logDirectory.listFiles(FilenameFilter { dir, name ->
+                return@FilenameFilter name.startsWith(logFilePrefix) && (name.endsWith(logFileSurfix) || name.endsWith(".zip"))
+                })
+                .run {
+                    if (timeRange.endTime == 0L) {
+                        sortByFileNameDateTimePoint(timeRange.startTime, logFilePrefix, SimpleDateFormat(format))//按靠近的时间点排序
+                    } else {
+                        val dateFormat = SimpleDateFormat(format)
+                        sortByFileNameDate(logFilePrefix, dateFormat, true)
+                                .filterByFileNameDateRange(timeRange, logFilePrefix, dateFormat)//把这段时间范围内的日志过滤出来
+                    }
+                }
+        } catch (t: Throwable) {
+            return listOf(currentLogFile)
+        }
+    }
+
+    /**
      * 压缩日志文件
      * @param externalFiles 额外压缩的文件
      * @param maxLogSize 最大压缩包大小
