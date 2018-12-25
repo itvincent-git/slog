@@ -71,7 +71,7 @@ object LogFileManager {
     @WorkerThread
     fun getLogFileListByTimeRange(timeRange: TimeRange): List<File> {
         try {
-            if (!logDirectory.exists()) return listOf(currentLogFile)
+            if (!logDirectory.exists()) return emptyList()
             return logDirectory.listFiles(FilenameFilter { dir, name ->
                 return@FilenameFilter name.startsWith(logFilePrefix) && (name.endsWith(logFileSurfix) || name.endsWith(".zip"))
                 })
@@ -85,7 +85,7 @@ object LogFileManager {
                     }
                 }
         } catch (t: Throwable) {
-            return listOf(currentLogFile)
+            return emptyList()
         }
     }
 
