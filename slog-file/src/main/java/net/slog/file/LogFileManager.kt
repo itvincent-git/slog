@@ -10,6 +10,7 @@ import java.io.File
 import java.io.FilenameFilter
 import java.io.IOException
 import java.text.SimpleDateFormat
+import java.util.concurrent.TimeUnit
 
 /**
  * 日志文件管理
@@ -86,6 +87,17 @@ object LogFileManager {
                 }
         } catch (t: Throwable) {
             return emptyList()
+        }
+    }
+
+    /**
+     * 清理beforeDays天前日志
+     */
+    fun cleanBeforeDaysLogFiles(beforeDays: Int) = GlobalScope.async(Dispatchers.IO) {
+        val files = getLogFileListByTimeRange(TimeRange(0, System.currentTimeMillis() - TimeUnit.DAYS.toMillis(beforeDays.toLong())))
+        Log.i(TAG, "cleanBeforeDaysLogFiles $files")
+        for (file in files) {
+            file.deleteWithoutException()
         }
     }
 

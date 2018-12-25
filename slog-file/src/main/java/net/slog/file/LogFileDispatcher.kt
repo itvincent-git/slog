@@ -18,12 +18,14 @@ import java.util.*
  * @param logFileSurfix 日志文件后缀
  * @param fileMaxSize 单个日志文件大小
  * @param logFileLevel 指定达到这个级别及以上的日志才输出到文件，先判定LogComposor的logLevel，再判定该字段
+ * @param autoCleanBeforeDaysLogs 自动清理N天之前的日志，默认为7天，小于等于0则不清理日志
  */
 class LogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
                         val logFilePrefix: String = "logs_",
                         val logFileSurfix: String = ".txt",
                         val fileMaxSize: Long = 1024 * 1024L,
-                        val logFileLevel: LogLevel = LogLevel.Debug): ComposorDispatch {
+                        val logFileLevel: LogLevel = LogLevel.Debug,
+                        val autoCleanBeforeDaysLogs:Int = 7): ComposorDispatch {
     val format = "yyyy_MM_dd_HH_mm_ss"
     val dateFormat = SimpleDateFormat(format)
 
@@ -93,6 +95,9 @@ class LogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
         try {
             if (!logDirectory.exists()) logDirectory.mkdirs()
             if (!logDirectory.isDirectory) throw IllegalArgumentException("logDirectory not a directory")
+            if (autoCleanBeforeDaysLogs > 0) {
+                LogFileManager.cleanBeforeDaysLogFiles(autoCleanBeforeDaysLogs)
+            }
         } catch (t: Throwable) {
             Log.e(TAG, "init error", t)
         }
