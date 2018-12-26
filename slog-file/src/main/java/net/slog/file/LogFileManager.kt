@@ -41,7 +41,7 @@ object LogFileManager {
             if (!logDirectory.exists()) return@async
             logDirectory.listFiles(FilenameFilter { dir, name ->
                 return@FilenameFilter name.startsWith(logFilePrefix) && name.endsWith(logFileSurfix) && excludeFile.name != name
-            }).forEach {
+            })?.forEach {
                 it.toZipFile(logDirectory)
                 it.delete()
             }
@@ -59,7 +59,7 @@ object LogFileManager {
             if (!logDirectory.exists()) return listOf(currentLogFile)
             return logDirectory.listFiles(FilenameFilter { dir, name ->
                 return@FilenameFilter name.startsWith(logFilePrefix) && (name.endsWith(logFileSurfix) || name.endsWith(".zip"))
-            }).sortByFileNameDate(logFilePrefix, SimpleDateFormat(format), true)
+            })?.sortByFileNameDate(logFilePrefix, SimpleDateFormat(format), true) ?: emptyList()
         } catch (t: Throwable) {
             return listOf(currentLogFile)
         }
@@ -73,10 +73,10 @@ object LogFileManager {
     fun getLogFileListByTimeRange(timeRange: TimeRange): List<File> {
         try {
             if (!logDirectory.exists()) return emptyList()
-            return logDirectory.listFiles(FilenameFilter { dir, name ->
+            val fileList = logDirectory.listFiles(FilenameFilter { dir, name ->
                 return@FilenameFilter name.startsWith(logFilePrefix) && (name.endsWith(logFileSurfix) || name.endsWith(".zip"))
-                })
-                .run {
+                }) ?: return emptyList()
+            return fileList.run {
                     if (timeRange.endTime == 0L) {
                         sortByFileNameDateTimePoint(timeRange.startTime, logFilePrefix, SimpleDateFormat(format))//按靠近的时间点排序
                     } else {
@@ -114,10 +114,11 @@ object LogFileManager {
         return withContext(Dispatchers.IO) {
             if (!logDirectory.exists()) return@withContext listOf<File>()
 
-            return@withContext logDirectory.listFiles(FilenameFilter { dir, name ->
+            val fileList = logDirectory.listFiles(FilenameFilter { dir, name -> //取日志文件
                 return@FilenameFilter name.startsWith(logFilePrefix) && (name.endsWith(logFileSurfix) || name.endsWith(".zip"))
-            })//取日志文件
-            .run {
+            }) ?: return@withContext emptyList<File>()
+
+            return@withContext fileList.run {
                 if (timeRange.endTime == 0L) {
                     sortByFileNameDateTimePoint(timeRange.startTime, logFilePrefix, SimpleDateFormat(format))//按靠近的时间点排序
                 } else {
