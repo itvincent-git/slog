@@ -88,6 +88,7 @@ fun File.fileNameToDate(prefix: String, dateFormat: DateFormat): Date {
  * 按时间旧到新排序
  */
 fun Array<File>.sortByLastModified(descending: Boolean = false): List<File> {
+    if (isEmpty()) return emptyList()
     return sortedWith(Comparator { lhs: File, rhs: File ->
         if (descending) {
             when {
@@ -109,6 +110,7 @@ fun Array<File>.sortByLastModified(descending: Boolean = false): List<File> {
  * 按文件名的日期来排期
  */
 fun Array<File>.sortByFileNameDate(prefix: String, dateFormat: DateFormat, descending: Boolean = false): List<File> {
+    if (isEmpty()) return emptyList()
     return sortedWith(Comparator { lhs: File, rhs: File ->
         if (descending) {
             when {
@@ -130,6 +132,7 @@ fun Array<File>.sortByFileNameDate(prefix: String, dateFormat: DateFormat, desce
  * 按最靠近timePoint的文件LastModified时间为先进行排序
  */
 fun Array<File>.sortByLastModifiedTimePoint(timePoint: Long): List<File> {
+    if (isEmpty()) return emptyList()
     return sortedWith(Comparator { lhs: File, rhs: File ->
         when {
             abs(lhs.lastModified() - timePoint) < abs(rhs.lastModified() - timePoint) -> -1
@@ -143,6 +146,7 @@ fun Array<File>.sortByLastModifiedTimePoint(timePoint: Long): List<File> {
  * 按最靠近timePoint的文件FileNameDate时间为先进行排序
  */
 fun Array<File>.sortByFileNameDateTimePoint(timePoint: Long, prefix: String, dateFormat: DateFormat): List<File> {
+    if (isEmpty()) return emptyList()
     return sortedWith(Comparator { lhs: File, rhs: File ->
         when {
             abs(lhs.fileNameToDate(prefix, dateFormat).time - timePoint) < abs(rhs.fileNameToDate(prefix, dateFormat).time - timePoint) -> -1
@@ -157,6 +161,7 @@ fun Array<File>.sortByFileNameDateTimePoint(timePoint: Long, prefix: String, dat
  * 按最近修改时间在timeRange范围内则被选中返回
  */
 fun Collection<File>.filterByLastModifiedRange(timeRange: TimeRange): List<File> {
+    if (isEmpty()) return emptyList()
     return filter {
         val l = it.lastModified()
         l >= timeRange.startTime && l <= timeRange.endTime
@@ -167,6 +172,7 @@ fun Collection<File>.filterByLastModifiedRange(timeRange: TimeRange): List<File>
  * 按FileNameDate在timeRange范围内则被选中返回
  */
 fun Collection<File>.filterByFileNameDateRange(timeRange: TimeRange, prefix: String, dateFormat: DateFormat): List<File> {
+    if (isEmpty()) return emptyList()
     return filter {
         val l = it.fileNameToDate(prefix, dateFormat).time
         l >= timeRange.startTime && l <= timeRange.endTime
