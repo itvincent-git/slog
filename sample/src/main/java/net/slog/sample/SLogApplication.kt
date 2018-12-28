@@ -9,6 +9,7 @@ import net.slog.file.LogFileDispatcher
 import java.io.File
 
 /**
+ * 在Application中初始化SLog
  * Created by zhongyongsheng on 2018/12/17.
  */
 class SLogApplication: Application() {
