@@ -10,6 +10,7 @@ import java.io.File
 import java.io.FilenameFilter
 import java.io.IOException
 import java.text.SimpleDateFormat
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 /**
@@ -59,7 +60,7 @@ object LogFileManager {
             if (!logDirectory.exists()) return listOf(currentLogFile)
             return logDirectory.listFiles(FilenameFilter { dir, name ->
                 return@FilenameFilter name.startsWith(logFilePrefix) && (name.endsWith(logFileSurfix) || name.endsWith(".zip"))
-            })?.sortByFileNameDate(logFilePrefix, SimpleDateFormat(format), true) ?: emptyList()
+            })?.sortByFileNameDate(logFilePrefix, SimpleDateFormat(format, Locale.CHINA), true) ?: emptyList()
         } catch (t: Throwable) {
             return listOf(currentLogFile)
         }
@@ -78,9 +79,9 @@ object LogFileManager {
                 }) ?: return emptyList()
             return fileList.run {
                     if (timeRange.endTime == 0L) {
-                        sortByFileNameDateTimePoint(timeRange.startTime, logFilePrefix, SimpleDateFormat(format))//按靠近的时间点排序
+                        sortByFileNameDateTimePoint(timeRange.startTime, logFilePrefix, SimpleDateFormat(format, Locale.CHINA))//按靠近的时间点排序
                     } else {
-                        val dateFormat = SimpleDateFormat(format)
+                        val dateFormat = SimpleDateFormat(format, Locale.CHINA)
                         sortByFileNameDate(logFilePrefix, dateFormat, true)
                                 .filterByFileNameDateRange(timeRange, logFilePrefix, dateFormat)//把这段时间范围内的日志过滤出来
                     }
@@ -120,9 +121,9 @@ object LogFileManager {
 
             return@withContext fileList.run {
                 if (timeRange.endTime == 0L) {
-                    sortByFileNameDateTimePoint(timeRange.startTime, logFilePrefix, SimpleDateFormat(format))//按靠近的时间点排序
+                    sortByFileNameDateTimePoint(timeRange.startTime, logFilePrefix, SimpleDateFormat(format, Locale.CHINA))//按靠近的时间点排序
                 } else {
-                    val dateFormat = SimpleDateFormat(format)
+                    val dateFormat = SimpleDateFormat(format, Locale.CHINA)
                     sortByFileNameDate(logFilePrefix, dateFormat, true)
                     .filterByFileNameDateRange(timeRange, logFilePrefix, dateFormat)//把这段时间范围内的日志过滤出来
                 }

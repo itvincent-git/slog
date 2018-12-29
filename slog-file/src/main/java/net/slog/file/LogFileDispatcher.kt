@@ -27,7 +27,7 @@ class LogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
                         val logFileLevel: LogLevel = LogLevel.Debug,
                         val autoCleanBeforeDaysLogs:Int = 7): ComposorDispatch {
     val format = "yyyy_MM_dd_HH_mm_ss"
-    val dateFormat = SimpleDateFormat(format)
+    val dateFormat = SimpleDateFormat(format, Locale.CHINA)
 
     init {
         LogFileManager.initialize(this)

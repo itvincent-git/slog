@@ -74,7 +74,7 @@ class LogComposor(val mLogLevel: LogLevel,
     companion object {
         const val TAG = "LogComposor"
         const val mFormat = "HH:mm:ss.SSS"
-        val dateFormat = SimpleDateFormat(mFormat)
+        val dateFormat = SimpleDateFormat(mFormat, Locale.CHINA)
 
         fun toStringiflyArray(arr: Array<out Any?>): Array<Any?> {
             val result = Array<Any?>(arr.size) {}
