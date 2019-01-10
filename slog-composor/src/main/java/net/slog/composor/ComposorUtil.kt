@@ -6,6 +6,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
+import java.util.*
 
 /**
  * utils for Composor
@@ -42,6 +43,8 @@ object ComposorUtil {
     fun setComposorUncaughtExceptionHandler() {
         Thread.setDefaultUncaughtExceptionHandler(ComposorUncaughtExceptionHandler(Thread.getDefaultUncaughtExceptionHandler()))
     }
+
+    val locale = Locale.SIMPLIFIED_CHINESE
 }
 
 class SafeDispatchHandler(looper: Looper) : Handler(looper) {
@@ -83,5 +86,4 @@ class ComposorUncaughtExceptionHandler(val defaultHandler: Thread.UncaughtExcept
         //Log.d(TAG, "log task finished")//调试时用
         defaultHandler.uncaughtException(t, e)
     }
-
 }

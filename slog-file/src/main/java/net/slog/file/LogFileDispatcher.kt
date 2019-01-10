@@ -2,6 +2,8 @@ package net.slog.file
 
 import android.util.Log
 import net.slog.composor.ComposorDispatch
+import net.slog.composor.ComposorUtil
+import net.slog.composor.LogComposorHolder
 import net.slog.composor.LogLevel
 import java.io.File
 import java.nio.BufferOverflowException
@@ -27,7 +29,7 @@ class LogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
                         val logFileLevel: LogLevel = LogLevel.Debug,
                         val autoCleanBeforeDaysLogs:Int = 7): ComposorDispatch {
     val format = "yyyy_MM_dd_HH_mm_ss"
-    val dateFormat = SimpleDateFormat(format, Locale.CHINA)
+    val dateFormat = SimpleDateFormat(format, ComposorUtil.locale)
 
     init {
         LogFileManager.initialize(this)
