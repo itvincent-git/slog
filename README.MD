@@ -1,5 +1,5 @@
 # SLog
-An Android log tools, with logcat and file log used mmap. 
+An android logging framework that aims to be fast, without blocking the UI, and written using kotlin
 
 ## 中文
 一个Android的日志工具，会输出logcat及写入文件。目标是高性能、轻量化、接口化。
@@ -30,9 +30,9 @@ SLoggerFactory.initialize(
 
 [√] 日志文件管理接口：包括查询所有日志文件
 
-[ ] 没有写文件权限的保护：如果设置的日志目录是在sdcard，但访问外部存储权限时，不会崩溃，当然也写不了日志
+[√] 没有写文件权限的保护：如果设置的日志目录是在sdcard，但访问外部存储权限时，不会崩溃，当然也写不了日志
 
-[ ] 自动清理超时7天的日志，避免日志过多
+[√] 自动清理超时7天的日志，避免日志过多
 
 ### 性能测试
 
