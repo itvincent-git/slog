@@ -64,8 +64,10 @@ class SafeDispatchHandler(looper: Looper) : Handler(looper) {
     }
 
     fun waitMessageFinish() = runBlocking {
-        channel = Channel()
-        channel?.receive()
+        if (hasMessages(0)) {
+            channel = Channel()
+            channel?.receive()
+        }
     }
 
     companion object {
