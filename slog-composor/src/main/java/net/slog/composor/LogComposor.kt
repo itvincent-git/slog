@@ -26,6 +26,7 @@ class LogComposor(val mLogLevel: LogLevel,
     internal fun processLog(tag: String, level:LogLevel, msg: String?, throwable: Throwable?, vararg objs: Any?) {
         if (msg != null && level >= mLogLevel) {
             val currentTime = System.currentTimeMillis()
+            val threadName = Thread.currentThread().name
             if (objs.isNotEmpty()) {
                 val stringiflyArray = toStringiflyArray(objs)
                 ComposorUtil.handler.post {
@@ -37,12 +38,12 @@ class LogComposor(val mLogLevel: LogLevel,
                             it
                         }
                     }
-                    dispatchMsg(tag, level, appendExternalString(currentTime, tag, level, formatMsg))
+                    dispatchMsg(tag, level, appendExternalString(currentTime, threadName, tag, level, formatMsg))
                 }
             } else {
                 ComposorUtil.handler.post {
 
-                    dispatchMsg(tag, level, appendExternalString(currentTime, tag, level, msg.let {
+                    dispatchMsg(tag, level, appendExternalString(currentTime, threadName, tag, level, msg.let {
                         if (throwable != null) {
                             it + "\n" + Log.getStackTraceString(throwable)
                         } else {
@@ -67,8 +68,8 @@ class LogComposor(val mLogLevel: LogLevel,
     /**
      * 扩展日志信息
      */
-    protected fun appendExternalString(currentTime: Long, tag: String, logLevel: LogLevel, msg: String): String {
-        return "${dateFormat.format(Date(currentTime))} ${logLevel.logMsg}$tag: $msg"
+    protected fun appendExternalString(currentTime: Long, threadName: String, tag: String, logLevel: LogLevel, msg: String): String {
+        return "${dateFormat.format(Date(currentTime))} $threadName ${logLevel.logMsg}$tag: $msg"
     }
 
     companion object {
