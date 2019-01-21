@@ -68,7 +68,7 @@ class LogComposor(val mLogLevel: LogLevel,
     /**
      * 扩展日志信息
      */
-    protected fun appendExternalString(currentTime: Long, threadName: String, tag: String, logLevel: LogLevel, msg: String): String {
+    protected fun appendExternalString(currentTime: Long, threadName: String?, tag: String, logLevel: LogLevel, msg: String): String {
         return "${dateFormat.format(Date(currentTime))} $threadName ${logLevel.logMsg}$tag: $msg"
     }
 
