@@ -28,12 +28,13 @@ object LogFileManager {
     private lateinit var currentLogFile: File
     private lateinit var format: String
 
-    internal fun initialize(fileDispatcher: LogFileDispatcher) {
-        logDirectory = fileDispatcher.logDirectory
-        logFilePrefix = fileDispatcher.logFilePrefix
-        logFileSurfix = fileDispatcher.logFileSurfix
-        currentLogFile = fileDispatcher.logFile
-        format = fileDispatcher.format
+    internal fun initialize(_logDirectory: File, _logFilePrefix: String, _logFileSurfix: String,
+                            _logFile: File, _format: String) {
+        logDirectory = _logDirectory
+        logFilePrefix = _logFilePrefix
+        logFileSurfix = _logFileSurfix
+        currentLogFile = _logFile
+        format = _format
     }
     /**
      * 除当前的日志文件外，压缩logDirectory目录下.txt文件为.zip

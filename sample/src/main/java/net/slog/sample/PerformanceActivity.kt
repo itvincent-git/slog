@@ -9,7 +9,7 @@ import kotlin.system.measureTimeMillis
 class PerformanceActivity : AppCompatActivity() {
 
     val log = SLoggerFactory.getLogger("PerformanceActivity")
-    val count = 100
+    val count = 1000
     var counter = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,7 +23,7 @@ class PerformanceActivity : AppCompatActivity() {
                     log.verbose("performance test %s %d", "number", counter++)
                 }
             }.let {
-                log.verbose("performance 10k verbose time used $it ms")
+                log.verbose("performance $count verbose time used $it ms")
             }
         }
 
@@ -35,7 +35,7 @@ class PerformanceActivity : AppCompatActivity() {
                     //println("test after $counter")
                 }
             }.let {
-                log.verbose("performance 10k info time used $it ms")
+                log.verbose("performance $count info time used $it ms")
             }
         }
 
@@ -49,7 +49,7 @@ class PerformanceActivity : AppCompatActivity() {
                     //println("test after $counter")
                 }
             }.let {
-                log.verbose("performance 10k info time used $it ms")
+                log.verbose("performance $count info time used $it ms")
             }
         }
     }

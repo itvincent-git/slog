@@ -1,0 +1,104 @@
+package net.slog.file
+
+import android.util.Log
+import net.slog.composor.ComposorDispatch
+import net.slog.composor.ComposorUtil
+import net.slog.composor.LogLevel
+import okio.BufferedSink
+import okio.Okio
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.system.measureNanoTime
+
+/**
+ * 输出日志到文件，使用okio的方式
+ * Created by zhongyongsheng on 2018/12/13.
+ *
+ * @param logDirectory 日志目录
+ * @param logFilePrefix 日志文件前缀
+ * @param logFileSurfix 日志文件后缀
+ * @param fileMaxSize 单个日志文件大小
+ * @param logFileLevel 指定达到这个级别及以上的日志才输出到文件，先判定LogComposor的logLevel，再判定该字段
+ * @param autoCleanBeforeDaysLogs 自动清理N天之前的日志，默认为7天，小于等于0则不清理日志
+ */
+class OkLogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
+                                                  val logFilePrefix: String = "logs_",
+                                                  val logFileSurfix: String = ".txt",
+                                                  val fileMaxSize: Long = 1024 * 1024L,
+                                                  val logFileLevel: LogLevel = LogLevel.Debug,
+                                                  val autoCleanBeforeDaysLogs:Int = 7): ComposorDispatch {
+    val format = "yyyy_MM_dd_HH_mm_ss"
+    val dateFormat = SimpleDateFormat(format, ComposorUtil.locale)
+    private var currentLogFile: File? = null
+    private var currentBufferedSink: BufferedSink? = null
+    private var writeByteCount = 0
+
+    init {
+        LogFileManager.initialize(logDirectory, logFilePrefix, logFileSurfix, logFile, format)
+    }
+
+    private val bufferSink: BufferedSink
+        get() = currentBufferedSink ?: Okio.buffer(Okio.sink(logFile)).apply {
+            currentBufferedSink = this
+            LogFileManager.compressBakLogFile(logFile)
+        }
+
+    private val logFile: File
+        get() = currentLogFile ?: getNewLogFile().apply { currentLogFile = this }
+
+    private fun getNewLogFile(): File {
+        return File(logDirectory, "$logFilePrefix${dateFormat.format(Date())}$logFileSurfix")
+    }
+
+    /**
+     * ComposorDispatch实现方法
+     */
+    override fun invoke(tag: String, logLevel: LogLevel, msg: String) {
+        if (logLevel >= logFileLevel) {
+            try {
+                measureNanoTime {
+                    bufferSink.writeUtf8Line(msg)
+                    //bufferSink.flush()
+                    writeByteCount += msg.length
+                    if (isOverFileLimit()) {
+                        createNewBufferedSink()
+                    }
+                }.also { Log.d(TAG, "invoke time used $it")}
+            } catch (t: Throwable) {
+                Log.e(TAG, "invoke error", t)
+            }
+        }
+    }
+
+    private fun isOverFileLimit() = writeByteCount > fileMaxSize
+
+    private fun createNewBufferedSink() {
+        currentLogFile = getNewLogFile()
+        currentBufferedSink = Okio.buffer(Okio.sink(logFile));
+        LogFileManager.compressBakLogFile(logFile)
+    }
+
+    init {
+        try {
+            if (!logDirectory.exists()) logDirectory.mkdirs()
+            if (!logDirectory.isDirectory) throw IllegalArgumentException("logDirectory not a directory")
+            if (autoCleanBeforeDaysLogs > 0) {
+                LogFileManager.cleanBeforeDaysLogFiles(autoCleanBeforeDaysLogs)
+            }
+        } catch (t: Throwable) {
+            Log.e(TAG, "init error", t)
+        }
+
+    }
+
+    companion object {
+        private const val TAG = "OkLogFileDispatcher"
+        private val lineFeedCode = "\n".toByteArray()
+    }
+
+    fun BufferedSink.writeUtf8Line(string: String) {
+        writeUtf8(string)
+        write(lineFeedCode)
+    }
+}

@@ -6,6 +6,7 @@ import net.slog.composor.ComposorBinderBuilder
 import net.slog.composor.LogLevel
 import net.slog.composor.logcat.LogcatDispatcher
 import net.slog.file.LogFileDispatcher
+import net.slog.file.OkLogFileDispatcher
 import java.io.File
 
 /**
@@ -19,7 +20,8 @@ class SLogApplication: Application() {
         SLoggerFactory.initialize(
                 ComposorBinderBuilder()
                         .addDispatcher(LogcatDispatcher())
-                        .addDispatcher(LogFileDispatcher(File("/sdcard/slog")))
+                        //.addDispatcher(LogFileDispatcher(File("/sdcard/slog")))
+                        .addDispatcher(OkLogFileDispatcher(File("/sdcard/slog")))
                         .logLevel(LogLevel.Verbose)
                         .build())
     }
