@@ -1,14 +1,24 @@
 package net.slog.file
 
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.channels.produce
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import net.slog.composor.ComposorDispatch
 import net.slog.composor.ComposorUtil
 import net.slog.composor.LogLevel
 import okio.BufferedSink
 import okio.Okio
+import okio.buffer
+import okio.sink
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.system.measureNanoTime
 
 /**
@@ -39,7 +49,7 @@ class OkLogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
     }
 
     private val bufferSink: BufferedSink
-        get() = currentBufferedSink ?: Okio.buffer(Okio.sink(logFile)).apply {
+        get() = currentBufferedSink ?: logFile.sink().buffer().apply {
             currentBufferedSink = this
             LogFileManager.compressBakLogFile(logFile)
         }
@@ -59,10 +69,11 @@ class OkLogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
             try {
                 measureNanoTime {
                     bufferSink.writeUtf8Line(msg)
-                    //bufferSink.flush()
                     writeByteCount += msg.length
                     if (isOverFileLimit()) {
+                        bufferSink.flush()
                         createNewBufferedSink()
+                        writeByteCount = 0
                     }
                 }.also { Log.d(TAG, "invoke time used $it")}
             } catch (t: Throwable) {
@@ -74,8 +85,9 @@ class OkLogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
     private fun isOverFileLimit() = writeByteCount > fileMaxSize
 
     private fun createNewBufferedSink() {
+        Log.d(TAG, "createNewBufferedSink")
         currentLogFile = getNewLogFile()
-        currentBufferedSink = Okio.buffer(Okio.sink(logFile));
+        currentBufferedSink = logFile.sink().buffer()
         LogFileManager.compressBakLogFile(logFile)
     }
 
@@ -85,6 +97,13 @@ class OkLogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
             if (!logDirectory.isDirectory) throw IllegalArgumentException("logDirectory not a directory")
             if (autoCleanBeforeDaysLogs > 0) {
                 LogFileManager.cleanBeforeDaysLogFiles(autoCleanBeforeDaysLogs)
+            }
+            //Flush to disk every 10 seconds
+            ComposorUtil.appScope.launch {
+                produceInterval(period = TimeUnit.SECONDS.toMillis(10)).consumeEach {
+                    bufferSink.flush()
+                    Log.d(TAG, "auto flush in interval")
+                }
             }
         } catch (t: Throwable) {
             Log.e(TAG, "init error", t)
@@ -100,5 +119,19 @@ class OkLogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
     fun BufferedSink.writeUtf8Line(string: String) {
         writeUtf8(string)
         write(lineFeedCode)
+    }
+}
+
+/**
+ * Send data at regular intervals, and return ReceiveChannel
+ */
+internal fun CoroutineScope.produceInterval(context: CoroutineContext = EmptyCoroutineContext,
+                                   capacity: Int = 0,
+                                   initialDelay: Long = 0L,
+                                   period: Long) = produce {
+    delay(initialDelay)
+    while (true) {
+        send(System.currentTimeMillis())
+        delay(period)
     }
 }

@@ -2,10 +2,8 @@ package net.slog.composor
 
 import android.os.*
 import android.util.Log
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.runBlocking
 import java.util.*
 
 /**
@@ -28,9 +26,11 @@ fun Any?.notPrimitiveToString(): Any? {
     }
 }
 
+private const val THREAD_NAME = "LogComposor"
+
 object ComposorUtil {
-    val handler: SafeDispatchHandler by lazy {
-        HandlerThread("LogComposor", Process.THREAD_PRIORITY_BACKGROUND)
+    internal val handler: SafeDispatchHandler by lazy {
+        HandlerThread(THREAD_NAME, Process.THREAD_PRIORITY_BACKGROUND)
                 .let {
                     it.start()
                     SafeDispatchHandler(it.looper)
@@ -45,16 +45,26 @@ object ComposorUtil {
     }
 
     val locale = Locale.SIMPLIFIED_CHINESE
+
+    /**
+     * custom app scope
+     */
+    val appScope = GlobalScope + Dispatchers.IO
+
+    /**
+     * is crash happening
+     */
+    var isCrashHappening = false
 }
 
-class SafeDispatchHandler(looper: Looper) : Handler(looper) {
-    var channel: Channel<Boolean>? = null
+internal class SafeDispatchHandler(looper: Looper) : Handler(looper) {
+    private var channel: Channel<Boolean>? = null
 
     override fun dispatchMessage(msg: Message) {
         try {
             super.dispatchMessage(msg)
             if (channel != null && !hasMessages(0)) {
-                GlobalScope.async {
+                ComposorUtil.appScope.launch {
                     channel?.send(true)
                 }
             }
@@ -66,7 +76,9 @@ class SafeDispatchHandler(looper: Looper) : Handler(looper) {
     fun waitMessageFinish() = runBlocking {
         if (hasMessages(0)) {
             channel = Channel()
-            channel?.receive()
+            withTimeoutOrNull(3000) {
+                channel?.receive()
+            }
         }
     }
 
@@ -78,14 +90,13 @@ class SafeDispatchHandler(looper: Looper) : Handler(looper) {
 /**
  * 处理当系统crash时，等待把日志写完再结束
  */
-class ComposorUncaughtExceptionHandler(val defaultHandler: Thread.UncaughtExceptionHandler): Thread.UncaughtExceptionHandler {
-    val TAG = "ComposorUEH"
+internal class ComposorUncaughtExceptionHandler(val defaultHandler: Thread.UncaughtExceptionHandler): Thread.UncaughtExceptionHandler {
+    private val TAG = "ComposorUEH"
 
     override fun uncaughtException(t: Thread?, e: Throwable?) {
         LogComposorHolder.logComposor.dispatchMsg(TAG, LogLevel.Error, "Crash happen > uncaughtException > ${Log.getStackTraceString(e)}")
-        //Log.d(TAG, "wait for log task finishing")//调试时用
+        ComposorUtil.isCrashHappening = true
         ComposorUtil.handler.waitMessageFinish()
-        //Log.d(TAG, "log task finished")//调试时用
         defaultHandler.uncaughtException(t, e)
     }
 }

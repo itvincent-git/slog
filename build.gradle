@@ -14,7 +14,7 @@ buildscript {
         support_version = '27.1.1'
         // kotlin coroutines android
         coroutines_android_version = '1.0.1'
-        okio_version = '1.14.0'
+        okio_version = '2.2.0'
 
         // === release ==
         release_version = "$version"

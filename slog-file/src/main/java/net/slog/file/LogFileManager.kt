@@ -3,16 +3,13 @@ package net.slog.file
 import android.support.annotation.WorkerThread
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import net.slog.composor.ComposorUtil
-import net.slog.composor.LogComposorHolder
 import java.io.File
 import java.io.FilenameFilter
 import java.io.IOException
 import java.text.SimpleDateFormat
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 /**
@@ -40,7 +37,7 @@ object LogFileManager {
      * 除当前的日志文件外，压缩logDirectory目录下.txt文件为.zip
      * @param currentLogFile 排除这个文件不压缩
      */
-    fun compressBakLogFile(excludeFile: File) = GlobalScope.async(Dispatchers.IO) {
+    fun compressBakLogFile(excludeFile: File) = ComposorUtil.appScope.async(Dispatchers.IO) {
         try {
             if (!logDirectory.exists()) return@async
             logDirectory.listFiles(FilenameFilter { dir, name ->
@@ -97,7 +94,7 @@ object LogFileManager {
     /**
      * 清理beforeDays天前日志
      */
-    fun cleanBeforeDaysLogFiles(beforeDays: Int) = GlobalScope.async(Dispatchers.IO) {
+    fun cleanBeforeDaysLogFiles(beforeDays: Int) = ComposorUtil.appScope.async(Dispatchers.IO) {
         val files = getLogFileListByTimeRange(TimeRange(0, System.currentTimeMillis() - TimeUnit.DAYS.toMillis(beforeDays.toLong())))
         Log.i(TAG, "cleanBeforeDaysLogFiles $files")
         for (file in files) {
