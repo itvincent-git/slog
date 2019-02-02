@@ -128,7 +128,7 @@ class OkLogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
 internal fun CoroutineScope.produceInterval(context: CoroutineContext = EmptyCoroutineContext,
                                    capacity: Int = 0,
                                    initialDelay: Long = 0L,
-                                   period: Long) = produce {
+                                   period: Long) = produce(context, capacity) {
     delay(initialDelay)
     while (true) {
         send(System.currentTimeMillis())
