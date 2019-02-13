@@ -10,12 +10,9 @@ import net.slog.composor.ComposorDispatch
 import net.slog.composor.ComposorUtil
 import net.slog.composor.LogLevel
 import okio.BufferedSink
-import okio.Okio
 import okio.buffer
 import okio.sink
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -38,28 +35,26 @@ class OkLogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
                                                   val fileMaxSize: Long = 1024 * 1024L,
                                                   val logFileLevel: LogLevel = LogLevel.Debug,
                                                   val autoCleanBeforeDaysLogs:Int = 7): ComposorDispatch {
-    val format = "yyyy_MM_dd_HH_mm_ss"
-    val dateFormat = SimpleDateFormat(format, ComposorUtil.locale)
+
     private var currentLogFile: File? = null
     private var currentBufferedSink: BufferedSink? = null
     private var writeByteCount = 0
 
     init {
-        LogFileManager.initialize(logDirectory, logFilePrefix, logFileSurfix, logFile, format)
+        LogFileManager.initialize(logDirectory, logFilePrefix, logFileSurfix)
     }
 
     private val bufferSink: BufferedSink
         get() = currentBufferedSink ?: logFile.sink().buffer().apply {
             currentBufferedSink = this
-            LogFileManager.compressBakLogFile(logFile)
         }
 
     private val logFile: File
-        get() = currentLogFile ?: getNewLogFile().apply { currentLogFile = this }
+        get() = currentLogFile ?: LogFileManager.getNewLogFile().apply {
+            currentLogFile = this
+            //LogFileManager.compressBakLogFile(this)
+        }
 
-    private fun getNewLogFile(): File {
-        return File(logDirectory, "$logFilePrefix${dateFormat.format(Date())}$logFileSurfix")
-    }
 
     /**
      * ComposorDispatch实现方法
@@ -70,12 +65,15 @@ class OkLogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
                 measureNanoTime {
                     bufferSink.writeUtf8Line(msg)
                     writeByteCount += msg.length
+                    if (ComposorUtil.isCrashHappening) {
+                        bufferSink.flush()
+                    }
                     if (isOverFileLimit()) {
                         bufferSink.flush()
-                        createNewBufferedSink()
+                        resetBufferedSink()
                         writeByteCount = 0
                     }
-                }.also { Log.d(TAG, "invoke time used $it")}
+                }.also { Log.d(TAG, "invoke time used:${it}ns, writeByteCount:$writeByteCount")}
             } catch (t: Throwable) {
                 Log.e(TAG, "invoke error", t)
             }
@@ -84,11 +82,10 @@ class OkLogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
 
     private fun isOverFileLimit() = writeByteCount > fileMaxSize
 
-    private fun createNewBufferedSink() {
-        Log.d(TAG, "createNewBufferedSink")
-        currentLogFile = getNewLogFile()
-        currentBufferedSink = logFile.sink().buffer()
-        LogFileManager.compressBakLogFile(logFile)
+    private fun resetBufferedSink() {
+        Log.d(TAG, "resetBufferedSink")
+        currentLogFile = null
+        currentBufferedSink = null
     }
 
     init {
@@ -101,8 +98,10 @@ class OkLogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
             //Flush to disk every 10 seconds
             ComposorUtil.appScope.launch {
                 produceInterval(period = TimeUnit.SECONDS.toMillis(10)).consumeEach {
-                    bufferSink.flush()
-                    Log.d(TAG, "auto flush in interval")
+                    ComposorUtil.handler.post {
+                        bufferSink.flush()
+                        Log.d(TAG, "auto flush in interval")
+                    }
                 }
             }
         } catch (t: Throwable) {
