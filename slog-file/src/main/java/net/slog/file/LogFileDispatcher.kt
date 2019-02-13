@@ -32,7 +32,7 @@ class LogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
     val dateFormat = SimpleDateFormat(format, ComposorUtil.locale)
 
     init {
-        LogFileManager.initialize(logDirectory, logFilePrefix, logFileSurfix, logFile, format)
+        LogFileManager.initialize(logDirectory, logFilePrefix, logFileSurfix)
     }
 
     private var currentMappedByteBuffer: MappedByteBuffer? = null
