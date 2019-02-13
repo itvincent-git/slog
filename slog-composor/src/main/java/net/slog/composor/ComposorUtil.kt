@@ -29,7 +29,7 @@ fun Any?.notPrimitiveToString(): Any? {
 private const val THREAD_NAME = "LogComposor"
 
 object ComposorUtil {
-    internal val handler: SafeDispatchHandler by lazy {
+    val handler: SafeDispatchHandler by lazy {
         HandlerThread(THREAD_NAME, Process.THREAD_PRIORITY_BACKGROUND)
                 .let {
                     it.start()
@@ -57,7 +57,7 @@ object ComposorUtil {
     var isCrashHappening = false
 }
 
-internal class SafeDispatchHandler(looper: Looper) : Handler(looper) {
+class SafeDispatchHandler(looper: Looper) : Handler(looper) {
     private var channel: Channel<Boolean>? = null
 
     override fun dispatchMessage(msg: Message) {
@@ -94,8 +94,8 @@ internal class ComposorUncaughtExceptionHandler(val defaultHandler: Thread.Uncau
     private val TAG = "ComposorUEH"
 
     override fun uncaughtException(t: Thread?, e: Throwable?) {
-        LogComposorHolder.logComposor.dispatchMsg(TAG, LogLevel.Error, "Crash happen > uncaughtException > ${Log.getStackTraceString(e)}")
         ComposorUtil.isCrashHappening = true
+        LogComposorHolder.logComposor.dispatchMsg(TAG, LogLevel.Error, "Crash happen > uncaughtException > ${Log.getStackTraceString(e)}")
         ComposorUtil.handler.waitMessageFinish()
         defaultHandler.uncaughtException(t, e)
     }
