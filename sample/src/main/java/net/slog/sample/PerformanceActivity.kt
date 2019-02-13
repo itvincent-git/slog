@@ -45,7 +45,7 @@ class PerformanceActivity : AppCompatActivity() {
             measureTimeMillis {
                 repeat(count) {
                     list += counter++
-                    log.info("performance test %s", list)
+                    log.info("performance test $counter %s", list)
                     //println("test after $counter")
                 }
             }.let {
