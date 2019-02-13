@@ -10,6 +10,7 @@ import java.io.File
 import java.io.FilenameFilter
 import java.io.IOException
 import java.text.SimpleDateFormat
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 /**
@@ -17,24 +18,21 @@ import java.util.concurrent.TimeUnit
  * Created by zhongyongsheng on 2018/12/17.
  */
 object LogFileManager {
-    const val TAG = "LogFileManager"
+    private const val TAG = "LogFileManager"
+    private const val format = "yyyy_MM_dd_HH_mm_ss"
 
     private lateinit var logDirectory: File
     private lateinit var logFilePrefix: String
     private lateinit var logFileSurfix: String
-    private lateinit var currentLogFile: File
-    private lateinit var format: String
 
-    internal fun initialize(_logDirectory: File, _logFilePrefix: String, _logFileSurfix: String,
-                            _logFile: File, _format: String) {
+    internal fun initialize(_logDirectory: File, _logFilePrefix: String, _logFileSurfix: String) {
         logDirectory = _logDirectory
         logFilePrefix = _logFilePrefix
         logFileSurfix = _logFileSurfix
-        currentLogFile = _logFile
-        format = _format
     }
+
     /**
-     * 除当前的日志文件外，压缩logDirectory目录下.txt文件为.zip
+     * 除excludeFile文件外，压缩logDirectory目录下的所有.txt文件为.zip
      * @param currentLogFile 排除这个文件不压缩
      */
     fun compressBakLogFile(excludeFile: File) = ComposorUtil.appScope.async(Dispatchers.IO) {
@@ -57,12 +55,12 @@ object LogFileManager {
     @WorkerThread
     fun getLogFileList(): List<File> {
         try {
-            if (!logDirectory.exists()) return listOf(currentLogFile)
+            if (!logDirectory.exists()) return emptyList()
             return logDirectory.listFiles(FilenameFilter { dir, name ->
                 return@FilenameFilter name.startsWith(logFilePrefix) && (name.endsWith(logFileSurfix) || name.endsWith(".zip"))
             })?.sortByFileNameDate(logFilePrefix, SimpleDateFormat(format, ComposorUtil.locale), true) ?: emptyList()
         } catch (t: Throwable) {
-            return listOf(currentLogFile)
+            return emptyList()
         }
     }
 
@@ -140,4 +138,26 @@ object LogFileManager {
         }
     }
 
+    /**
+     * create new log file
+     */
+    internal fun getNewLogFile(): File {
+        val dateFormat = SimpleDateFormat(format, ComposorUtil.locale)
+        val createNewFile: (Int) -> File = { appendMs ->
+            File(logDirectory, "$logFilePrefix${dateFormat.format(getLogFileDate(appendMs))}$logFileSurfix")
+        }
+        var newFile = createNewFile(0)
+        while (newFile.exists()) {// if exists, filename add 1s
+            newFile = createNewFile(1)
+        }
+        Log.i(TAG, "createNewFile $newFile")
+        return newFile
+    }
+
+    private fun getLogFileDate(appendMs: Int): Date {
+        if (appendMs <= 0) return Date()
+        val c = Calendar.getInstance()
+        c.add(Calendar.SECOND, appendMs)
+        return c.time
+    }
 }
