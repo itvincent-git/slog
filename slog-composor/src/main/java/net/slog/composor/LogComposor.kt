@@ -68,14 +68,13 @@ class LogComposor(val mLogLevel: LogLevel,
     /**
      * 扩展日志信息
      */
-    protected fun appendExternalString(currentTime: Long, threadName: String?, tag: String, logLevel: LogLevel, msg: String): String {
-        return "${dateFormat.format(Date(currentTime))} $threadName ${logLevel.logMsg}$tag: $msg"
+    private fun appendExternalString(currentTime: Long, threadName: String?, tag: String, logLevel: LogLevel, msg: String): String {
+        return "${logDateFormat.format(Date(currentTime))} $threadName ${logLevel.logMsg}$tag: $msg"
     }
 
     companion object {
         const val TAG = "LogComposor"
-        const val mFormat = "HH:mm:ss.SSS"
-        val dateFormat = SimpleDateFormat(mFormat, ComposorUtil.locale)
+        val logDateFormat = SimpleDateFormat("HH:mm:ss.SSS", ComposorUtil.locale)
 
         fun toStringiflyArray(arr: Array<out Any?>): Array<Any?> {
             val result = Array<Any?>(arr.size) {}
