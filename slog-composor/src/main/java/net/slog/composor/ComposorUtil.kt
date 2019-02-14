@@ -44,12 +44,12 @@ object ComposorUtil {
         Thread.setDefaultUncaughtExceptionHandler(ComposorUncaughtExceptionHandler(Thread.getDefaultUncaughtExceptionHandler()))
     }
 
-    val locale = Locale.SIMPLIFIED_CHINESE
+    var locale = Locale.SIMPLIFIED_CHINESE
 
     /**
      * custom app scope
      */
-    val appScope = GlobalScope + Dispatchers.IO
+    var appScope = GlobalScope + Dispatchers.IO
 
     /**
      * is crash happening
