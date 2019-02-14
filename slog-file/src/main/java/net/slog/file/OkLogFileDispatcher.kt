@@ -47,14 +47,13 @@ class OkLogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
     private val bufferSink: BufferedSink
         get() = currentBufferedSink ?: logFile.sink().buffer().apply {
             currentBufferedSink = this
+            LogFileManager.compressBakLogFile(logFile)
         }
 
     private val logFile: File
         get() = currentLogFile ?: LogFileManager.getNewLogFile().apply {
             currentLogFile = this
-            //LogFileManager.compressBakLogFile(this)
         }
-
 
     /**
      * ComposorDispatch实现方法
@@ -69,9 +68,7 @@ class OkLogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
                         bufferSink.flush()
                     }
                     if (isOverFileLimit()) {
-                        bufferSink.flush()
                         resetBufferedSink()
-                        writeByteCount = 0
                     }
                 }.also { Log.d(TAG, "invoke time used:${it}ns, writeByteCount:$writeByteCount")}
             } catch (t: Throwable) {
@@ -83,9 +80,10 @@ class OkLogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
     private fun isOverFileLimit() = writeByteCount > fileMaxSize
 
     private fun resetBufferedSink() {
-        Log.d(TAG, "resetBufferedSink")
-        currentLogFile = null
+        bufferSink.close()
+        writeByteCount = 0
         currentBufferedSink = null
+        currentLogFile = null
     }
 
     init {
@@ -113,11 +111,11 @@ class OkLogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
     companion object {
         private const val TAG = "OkLogFileDispatcher"
         private val lineFeedCode = "\n".toByteArray()
-    }
 
-    fun BufferedSink.writeUtf8Line(string: String) {
-        writeUtf8(string)
-        write(lineFeedCode)
+        fun BufferedSink.writeUtf8Line(string: String) {
+            writeUtf8(string)
+            write(lineFeedCode)
+        }
     }
 }
 
