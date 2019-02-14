@@ -39,7 +39,7 @@ fun File.toZipFile(targetDir: File,
         val zipEntry = ZipEntry(this.name)
         stream.putNextEntry(zipEntry)
         this.forEachBlock { bytes: ByteArray, i: Int ->
-            stream.write(bytes)
+            stream.write(bytes, 0, i)
         }
         stream.closeEntry()
     }
@@ -48,7 +48,7 @@ fun File.toZipFile(targetDir: File,
 /**
  * 转成MappedByteBuffer
  */
-fun File.toMappedByteBuffer(fileMaxSize: Long): MappedByteBuffer? {
+fun File.toMappedByteBuffer(fileMaxSize: Long): MappedByteBuffer {
     val memoryMappedFile = RandomAccessFile(this, "rw")
     val channel = memoryMappedFile.channel
 
