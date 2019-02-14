@@ -3,13 +3,11 @@ package net.slog.file
 import android.util.Log
 import net.slog.composor.ComposorDispatch
 import net.slog.composor.ComposorUtil
-import net.slog.composor.LogComposorHolder
 import net.slog.composor.LogLevel
 import java.io.File
 import java.nio.BufferOverflowException
 import java.nio.MappedByteBuffer
 import java.text.SimpleDateFormat
-import java.util.*
 
 /**
  * 输出日志到文件
@@ -38,26 +36,19 @@ class LogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
     private var currentMappedByteBuffer: MappedByteBuffer? = null
 
     protected val mappedByteBuffer: MappedByteBuffer
-        get() {
-            if (currentMappedByteBuffer == null) {
-                currentMappedByteBuffer = logFile.toMappedByteBuffer(fileMaxSize)
+        get() =
+            currentMappedByteBuffer ?: logFile.toMappedByteBuffer(fileMaxSize).apply {
+                currentMappedByteBuffer = this
                 LogFileManager.compressBakLogFile(logFile)
             }
-            return currentMappedByteBuffer!!
-        }
+
 
     private var currentLogFile: File? = null
 
-    val logFile: File
-        get() {
-            if (currentLogFile == null)
-                currentLogFile = getNewLogFile()
-            return currentLogFile!!
+    private val logFile: File
+        get() = currentLogFile ?: LogFileManager.getNewLogFile().apply {
+            currentLogFile = this
         }
-
-    protected fun getNewLogFile(): File {
-        return File(logDirectory, "${logFilePrefix}${dateFormat.format(Date())}$logFileSurfix")
-    }
 
     /**
      * ComposorDispatch实现方法
@@ -87,10 +78,9 @@ class LogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
         }
     }
 
-    fun createNewMappedByteBuffer() {
-        currentLogFile = getNewLogFile()
-        currentMappedByteBuffer = logFile.toMappedByteBuffer(fileMaxSize)
-        LogFileManager.compressBakLogFile(logFile)
+    private fun createNewMappedByteBuffer() {
+        currentLogFile = null
+        currentMappedByteBuffer = null
     }
 
     init {
