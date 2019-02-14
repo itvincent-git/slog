@@ -70,7 +70,7 @@ class OkLogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
                     if (isOverFileLimit()) {
                         resetBufferedSink()
                     }
-                }.also { Log.d(TAG, "invoke time used:${it}ns, writeByteCount:$writeByteCount")}
+                }.also { if (debug) Log.d(TAG, "invoke time used:${it}ns, writeByteCount:$writeByteCount")}
             } catch (t: Throwable) {
                 Log.e(TAG, "invoke error", t)
             }
@@ -98,7 +98,7 @@ class OkLogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
                 produceInterval(period = TimeUnit.SECONDS.toMillis(10)).consumeEach {
                     ComposorUtil.handler.post {
                         bufferSink.flush()
-                        Log.d(TAG, "auto flush in interval")
+                        if (debug) Log.d(TAG, "auto flush in interval")
                     }
                 }
             }
@@ -111,6 +111,7 @@ class OkLogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
     companion object {
         private const val TAG = "OkLogFileDispatcher"
         private val lineFeedCode = "\n".toByteArray()
+        var debug = false
 
         fun BufferedSink.writeUtf8Line(string: String) {
             writeUtf8(string)
