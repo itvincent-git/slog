@@ -14,7 +14,7 @@ class CrashTestActivity : AppCompatActivity() {
         setContentView(R.layout.activity_crash_test)
 
         crash_btn.setOnClickListener {
-            repeat(5_000) {
+            repeat(100) {
                 log.info("crash before log test $it")
             }
             throw RuntimeException("test exception")

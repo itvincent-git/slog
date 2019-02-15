@@ -10,7 +10,7 @@ An android logging framework that aims to be fast, without blocking the UI, and 
 SLoggerFactory.initialize(
     ComposorBinderBuilder()
         .addDispatcher(LogcatDispatcher())//使用logcat输出
-        .addDispatcher(LogFileDispatcher(File("/sdcard/slog")))//使用文件输出
+        .addDispatcher(OkLogFileDispatcher(File("/sdcard/slog")))//使用文件输出
         .logLevel(LogLevel.Verbose)
         .build())
 ```
@@ -28,12 +28,12 @@ SLoggerFactory.initialize(
 
 [√] 自动压缩日志文件：每次开新的日志文件时，会把之前的.txt日志压缩为.zip
 
-[√] 日志文件管理接口：包括查询所有日志文件
+[√] 日志文件管理接口：包括查询所有日志文件，按时间范围查询日志
 
 [√] 没有写文件权限的保护：如果设置的日志目录是在sdcard，但访问外部存储权限时，不会崩溃，当然也写不了日志
 
 [√] 自动清理超时7天的日志，避免日志过多
 
 ### 性能测试
-
+TODO
 

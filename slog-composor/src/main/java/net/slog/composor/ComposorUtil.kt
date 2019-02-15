@@ -51,10 +51,6 @@ object ComposorUtil {
      */
     var appScope = GlobalScope + Dispatchers.IO
 
-    /**
-     * is crash happening
-     */
-    var isCrashHappening = false
 }
 
 class SafeDispatchHandler(looper: Looper) : Handler(looper) {
@@ -76,9 +72,11 @@ class SafeDispatchHandler(looper: Looper) : Handler(looper) {
     fun waitMessageFinish() = runBlocking {
         if (hasMessages(0)) {
             channel = Channel()
-            withTimeoutOrNull(3000) {
+            Log.i(TAG, "waitMessageFinish")
+            withTimeoutOrNull(1000) {
                 channel?.receive()
             }
+            Log.i(TAG, "waitMessageFinish done")
         }
     }
 
@@ -90,13 +88,20 @@ class SafeDispatchHandler(looper: Looper) : Handler(looper) {
 /**
  * 处理当系统crash时，等待把日志写完再结束
  */
-internal class ComposorUncaughtExceptionHandler(val defaultHandler: Thread.UncaughtExceptionHandler): Thread.UncaughtExceptionHandler {
+internal class ComposorUncaughtExceptionHandler(private val defaultHandler: Thread.UncaughtExceptionHandler): Thread.UncaughtExceptionHandler {
     private val TAG = "ComposorUEH"
 
+    init {
+        Log.i(TAG, "defaultHandler $defaultHandler")
+    }
+
     override fun uncaughtException(t: Thread?, e: Throwable?) {
-        ComposorUtil.isCrashHappening = true
-        LogComposorHolder.logComposor.dispatchMsg(TAG, LogLevel.Error, "Crash happen > uncaughtException > ${Log.getStackTraceString(e)}")
+        ComposorUtil.handler.post {
+            LogComposorHolder.logComposor.dispatchMsg(TAG, LogLevel.Error, "Crash happen > uncaughtException > ${Log.getStackTraceString(e)}")
+            LogComposorHolder.logComposor.flushMsg()
+        }
         ComposorUtil.handler.waitMessageFinish()
+        Log.i(TAG, "uncaughtException after waitMessageFinish")
         defaultHandler.uncaughtException(t, e)
     }
 }

@@ -1,8 +1,10 @@
 package net.slog.sample
 
 import android.app.Application
+import android.util.Log
 import net.slog.SLoggerFactory
 import net.slog.composor.ComposorBinderBuilder
+import net.slog.composor.ComposorUtil
 import net.slog.composor.LogLevel
 import net.slog.composor.logcat.LogcatDispatcher
 import net.slog.file.LogFileDispatcher
@@ -17,6 +19,16 @@ class SLogApplication: Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        //used for test custom UncaughtExceptionHandler
+        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { t, e ->
+            Log.e("SLogApplication", "UncaughtExceptionHandler $t", e)
+            defaultHandler.uncaughtException(t, e)
+        }
+
+        OkLogFileDispatcher.debug = true
+
         SLoggerFactory.initialize(
                 ComposorBinderBuilder()
                         .addDispatcher(LogcatDispatcher())

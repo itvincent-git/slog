@@ -10,7 +10,7 @@ import net.slog.composor.LogLevel
  */
 class LogcatDispatcher: ComposorDispatch {
 
-    override fun invoke(tag: String, logLevel: LogLevel, msg: String) {
+    override fun dispatchMessage(tag: String, logLevel: LogLevel, msg: String) {
         when (logLevel) {
             LogLevel.Verbose -> Log.v(tag, msg)
             LogLevel.Debug -> Log.d(tag, msg)
@@ -18,5 +18,9 @@ class LogcatDispatcher: ComposorDispatch {
             LogLevel.Warn -> Log.w(tag, msg)
             LogLevel.Error -> Log.e(tag, msg)
         }
+    }
+
+    override fun flushMessage() {
+        // nothing to do
     }
 }

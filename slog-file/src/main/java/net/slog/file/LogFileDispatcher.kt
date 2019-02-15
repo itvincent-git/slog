@@ -53,7 +53,7 @@ class LogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
     /**
      * ComposorDispatch实现方法
      */
-    override fun invoke(tag: String, logLevel: LogLevel, msg: String) {
+    override fun dispatchMessage(tag: String, logLevel: LogLevel, msg: String) {
         if (logLevel >= logFileLevel) {
             try {
                 for (byte in msg.toByteArray()) {
@@ -66,6 +66,10 @@ class LogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
                 Log.e(TAG, "invoke error", t)
             }
         }
+    }
+
+    override fun flushMessage() {
+        //nothing to do
     }
 
     private inline fun writeToMappedByteBuffer(byte: Byte) {

@@ -14,7 +14,10 @@ enum class LogLevel(val logMsg: String) {
     Verbose("V/"), Debug("D/"), Info("I/"), Warn("W/"), Error("E/");
 }
 
-typealias ComposorDispatch = (String, LogLevel, String) -> Unit
+interface ComposorDispatch {
+    fun dispatchMessage(tag: String, logLevel: LogLevel, message: String)
+    fun flushMessage()
+}
 
 /**
  * 每次SLoggerFactory.getLogger()都会创建一个
@@ -56,12 +59,18 @@ class LogComposor(val mLogLevel: LogLevel,
     }
 
     internal fun dispatchMsg(tag: String, logLevel: LogLevel, msg: String) {
-        mComposorDispatchers.forEach {
+        for (dispatcher in mComposorDispatchers) {
             try {
-                it.invoke(tag, logLevel, msg)
+                dispatcher.dispatchMessage(tag, logLevel, msg)
             } catch (t : Throwable) {
                 Log.e(TAG, "dispatchMsg error", t)
             }
+        }
+    }
+
+    internal fun flushMsg() {
+        for (dispatch in mComposorDispatchers) {
+            dispatch.flushMessage()
         }
     }
 

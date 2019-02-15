@@ -58,15 +58,12 @@ class OkLogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
     /**
      * ComposorDispatch实现方法
      */
-    override fun invoke(tag: String, logLevel: LogLevel, msg: String) {
+    override fun dispatchMessage(tag: String, logLevel: LogLevel, msg: String) {
         if (logLevel >= logFileLevel) {
             try {
                 measureNanoTime {
                     bufferSink.writeUtf8Line(msg)
                     writeByteCount += msg.length
-                    if (ComposorUtil.isCrashHappening) {
-                        bufferSink.flush()
-                    }
                     if (isOverFileLimit()) {
                         resetBufferedSink()
                     }
@@ -75,6 +72,10 @@ class OkLogFileDispatcher @JvmOverloads constructor(val logDirectory: File,
                 Log.e(TAG, "invoke error", t)
             }
         }
+    }
+
+    override fun flushMessage() {
+        bufferSink.flush()
     }
 
     private fun isOverFileLimit() = writeByteCount > fileMaxSize
