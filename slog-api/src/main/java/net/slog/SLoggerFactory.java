@@ -12,6 +12,7 @@ import net.slog.logcat.LogcatBinder;
 public class SLoggerFactory {
 
     protected static SLogBinder sDefaultLogBinder = new LogcatBinder();
+    private static boolean isInit = false;
 
     /**
      * 初始化SLoggerFactory
@@ -19,6 +20,7 @@ public class SLoggerFactory {
      */
     public static void initialize(SLogBinder defaultBinder) {
         sDefaultLogBinder = defaultBinder;
+        isInit = true;
     }
 
     /**
@@ -40,6 +42,8 @@ public class SLoggerFactory {
      */
     @Deprecated
     public static SLogger getLogger(Class cls, SLogBinder sLogBinder) {
+        if (!isInit) throw new IllegalStateException("initialize must call first");
+        if (cls == null || sLogBinder == null) throw new IllegalArgumentException("cls and binder must not null");
         ILoggerFactory factory = sLogBinder.getILoggerFactory();
         return factory.getLogger(cls);
     }
@@ -63,6 +67,8 @@ public class SLoggerFactory {
      * @return
      */
     public static SLogger getLogger(String name, SLogBinder sLogBinder) {
+        if (!isInit) throw new IllegalStateException("initialize must call first");
+        if (name == null || sLogBinder == null) throw new IllegalArgumentException("name and binder must not null");
         ILoggerFactory factory = sLogBinder.getILoggerFactory();
         return factory.getLogger(name);
     }
