@@ -12,6 +12,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".CustomLogBinderActivity">
+        </activity>
         <activity
             android:name="net.kotlin.ex.sample.MainActivity"
             android:screenOrientation="portrait">
@@ -25,7 +27,7 @@
         <activity android:name=".PerformanceActivity" />
         <activity android:name=".ExtendActivity" />
         <activity android:name=".CrashTestActivity" />
-        <activity android:name=".LogManagerActivity"></activity>
+        <activity android:name=".LogManagerActivity" />
     </application>
 
 </manifest>
