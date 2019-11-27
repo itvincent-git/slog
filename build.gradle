@@ -7,13 +7,9 @@ buildscript {
         _targetSdkVersion = 27
         _buildToolsVersion = '27.0.2'
         _minSdkVersion = 15
-        kotlin_version = '1.3.20'
-        javapoet_version = '1.10.0'
-        auto_common_version = '0.10'
-        auto_service_version = '1.0-rc4'
+        kotlin_version = '1.3.40'
         support_version = '27.1.1'
-        // kotlin coroutines android
-        coroutines_android_version = '1.0.1'
+        coroutines_android_version = '1.2.2'
         okio_version = '2.2.0'
 
         // === release ==
@@ -32,7 +28,7 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.novoda:bintray-release:0.8.1'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
-        classpath 'net.researchgate:gradle-release:2.4.1' ////release插件for private
+        classpath 'net.researchgate:gradle-release:2.6.0' ////release插件for private
         classpath 'digital.wup:android-maven-publish:3.4.0'//android aar plugin
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
